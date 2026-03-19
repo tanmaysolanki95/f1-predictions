@@ -44,51 +44,44 @@ export default async function ResultsPage({ searchParams }: { searchParams: Prom
 
   const eventId = Number(selectedEventId);
 
-  const poleRes = await supabase
+  const resultsPromise = supabase
     .from("session_results")
-    .select("driver_id")
-    .eq("event_id", eventId)
-    .eq("session_type", "qualifying")
-    .order("position", { ascending: true })
-    .limit(1);
-  const actualPole = poleRes.data?.[0]?.driver_id;
+    .select("driver_id, position, session_type")
+    .eq("event_id", eventId);
+  const predictionsPromise = supabase.from("predictions").select("*").eq("event_id", eventId);
+  const scoresPromise = supabase.from("scores").select(
+    "user_id, race_pole_points, race_p1_points, race_p2_points, race_p3_points, race_p10_points, sprint_pole_points, sprint_p1_points, sprint_p2_points, sprint_p3_points, sprint_p10_points"
+  ).eq("event_id", eventId);
 
-  const raceTopRes = await supabase
-    .from("session_results")
-    .select("driver_id, position")
-    .eq("event_id", eventId)
-    .eq("session_type", "race")
-    .order("position", { ascending: true })
-    .limit(10);
-  const raceTop3 = (raceTopRes.data ?? [])
+  const [resultsData, predictionsData, scoresData] = await Promise.all([
+    resultsPromise.then(r => r.data ?? []),
+    predictionsPromise.then(r => r.data ?? []),
+    scoresPromise.then(r => r.data ?? []),
+  ]);
+
+  const results = resultsData as Array<{ driver_id: string; position: number; session_type: string }>;
+  const qualifyingResults = results.filter((r) => r.session_type === "qualifying");
+  const raceResults = results.filter((r) => r.session_type === "race");
+  const sprintResults = results.filter((r) => r.session_type === "sprint");
+
+  const actualPole = qualifyingResults.find((r) => r.position === 1)?.driver_id;
+  const raceTop3 = raceResults
     .filter((r) => r.position <= 3)
+    .sort((a, b) => a.position - b.position)
     .map((r) => r.driver_id);
-  const actualRaceP10 = raceTopRes.data?.find((r) => r.position === 10)?.driver_id;
+  const actualRaceP10 = raceResults.find((r) => r.position === 10)?.driver_id;
 
   let sprintTop3: string[] = [];
   let actualSprintP10: string | undefined;
   if (isSprintWeekend) {
-    const sprintTopRes = await supabase
-      .from("session_results")
-      .select("driver_id, position")
-      .eq("event_id", eventId)
-      .eq("session_type", "sprint")
-      .order("position", { ascending: true })
-      .limit(10);
-    sprintTop3 = (sprintTopRes.data ?? [])
+    sprintTop3 = sprintResults
       .filter((r) => r.position <= 3)
+      .sort((a, b) => a.position - b.position)
       .map((r) => r.driver_id);
-    const sprintP10Res = await supabase
-      .from("session_results")
-      .select("driver_id")
-      .eq("event_id", eventId)
-      .eq("session_type", "sprint")
-      .eq("position", 10)
-      .limit(1);
-    actualSprintP10 = sprintP10Res.data?.[0]?.driver_id;
+    actualSprintP10 = sprintResults.find((r) => r.position === 10)?.driver_id;
   }
 
-  const { data: predictions } = await supabase.from("predictions").select("*").eq("event_id", eventId);
+  const predictions = predictionsData as any[];
   const userIds = (predictions ?? []).map((p) => p.user_id);
   const { data: userNames } = await supabase
     .from("leaderboard")
@@ -96,12 +89,6 @@ export default async function ResultsPage({ searchParams }: { searchParams: Prom
     .in("user_id", userIds);
   const nameMap = new Map((userNames ?? []).map((u) => [u.user_id, u.display_name]));
 
-  const { data: scoresData } = await supabase
-    .from("scores")
-    .select(
-      "user_id, race_pole_points, race_p1_points, race_p2_points, race_p3_points, race_p10_points, sprint_pole_points, sprint_p1_points, sprint_p2_points, sprint_p3_points, sprint_p10_points"
-    )
-    .eq("event_id", eventId);
   const scoresMap = new Map<string, any>();
   (scoresData ?? []).forEach((s) => scoresMap.set(s.user_id, s));
 
