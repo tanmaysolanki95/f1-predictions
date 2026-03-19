@@ -108,8 +108,8 @@ export default async function Page({
   return (
     <div className="p-6 text-white animate-fade-in">
       <div className="max-w-5xl mx-auto px-4 py-8 space-y-6">
-        <Button variant="ghost" size="sm" href={`/events/${eventId}`}>
-          &larr; Back to event
+        <Button variant="ghost" size="sm" href="/events">
+          &larr; Back to events
         </Button>
 
         <header className="space-y-1">
