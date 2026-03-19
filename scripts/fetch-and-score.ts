@@ -6,6 +6,7 @@ import {
   getSeasonCalendar,
   isSprintWeekend,
 } from "../src/lib/jolpica/client";
+import type { JolpicaRaceSchedule } from "../src/lib/jolpica/types";
 import {
   mapQualifyingResults,
   mapRaceResults,
@@ -99,6 +100,21 @@ async function scoreEvent(eventId: number) {
   console.log(`Scored ${scores.length} predictions (${totalPoints} total points awarded)`);
 }
 
+const COMPLETION_BUFFER_MS = 6 * 60 * 60 * 1000;
+
+function findMostRecentCompletedRace(
+  calendar: JolpicaRaceSchedule[],
+): JolpicaRaceSchedule | null {
+  const now = Date.now();
+  const completed = calendar.filter((race) => {
+    const raceStart = race.time
+      ? new Date(`${race.date}T${race.time}`).getTime()
+      : new Date(`${race.date}T00:00:00Z`).getTime();
+    return raceStart + COMPLETION_BUFFER_MS <= now;
+  });
+  return completed.length > 0 ? completed[completed.length - 1] : null;
+}
+
 async function main() {
   console.log(`Fetching results for season=${season} round=${round}`);
 
@@ -106,11 +122,15 @@ async function main() {
 
   const targetRace =
     roundNum === "last"
-      ? calendar[calendar.length - 1]
+      ? findMostRecentCompletedRace(calendar)
       : calendar.find((r) => r.round === String(roundNum));
 
   if (!targetRace) {
-    console.error(`Round ${round} not found in ${season} calendar`);
+    console.error(
+      roundNum === "last"
+        ? "No completed race found yet (race start + 6h buffer not elapsed)"
+        : `Round ${round} not found in ${season} calendar`,
+    );
     process.exit(1);
   }
 
