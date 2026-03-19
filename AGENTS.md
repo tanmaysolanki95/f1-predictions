@@ -69,8 +69,9 @@ All consumers must handle `null` returns gracefully. Use `<FallbackImage>` (clie
 - Sign-out uses `window.location.href = "/"` (hard navigation) to force the server layout to re-evaluate auth state and update Nav
 - Password reset flow: forgot-password → email → callback → reset-password
 - The auth callback route validates the `next` parameter against open redirect (must start with `/`, must not start with `//`)
-- Login and signup pages always show a "← Back" link — points to the `?redirect=` param value if present, otherwise to `/` (dashboard). The redirect param is preserved when navigating between login ↔ signup
+- Login and signup pages always show a "← Back" link — uses a dedicated `?back=` param (falls back to `/`), separate from `?redirect=` (post-login destination). Both params are preserved when navigating between login ↔ signup
 - The predict form page (`/events/[eventId]/predict`) has a server-side redirect to login as a safety net behind middleware
+- The predict form page redirects users with existing predictions to the predictions view unless `?edit` is present — "Edit Picks" and "Make / Edit predictions" links pass `?edit` to bypass this
 
 ### Pages
 

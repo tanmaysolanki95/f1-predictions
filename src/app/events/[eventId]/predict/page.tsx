@@ -12,10 +12,13 @@ function hasEventBegun(event: Event): boolean {
 
 export default async function Page({
   params,
+  searchParams,
 }: {
   params: Promise<{ eventId: string }>;
+  searchParams: Promise<{ edit?: string }>;
 }) {
   const { eventId } = await params;
+  const { edit } = await searchParams;
   const supabase = await createClient();
 
   const [{ data: event }, { data: drivers }] = await Promise.all([
@@ -44,6 +47,10 @@ export default async function Page({
       .eq("event_id", Number(eventId))
       .maybeSingle<Prediction>();
     existingPrediction = data ?? null;
+  }
+
+  if (existingPrediction && edit === undefined) {
+    redirect(`/events/${eventId}/predictions?from=/`);
   }
 
   if (!event || !drivers) {

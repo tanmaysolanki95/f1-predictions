@@ -52,7 +52,7 @@ supabase/migrations/004_lock_predictions_rls.sql
 - **Race predictions**: Qualifying Pole, P1, P2, P3, P10
 - **Sprint predictions** (sprint weekends only): Sprint Qualifying Pole, Sprint P1
 - **Duplicate prevention**: Race positions P1–P10 must be unique drivers (pole excluded from this check)
-- **Smart routing**: Dashboard CTA adapts based on auth and prediction state — anonymous users see "View Predictions" + "Sign in to Predict"; authenticated users see "Make Predictions" or "View Predictions" + "Edit Picks"
+- **Smart routing**: Dashboard CTA adapts based on auth and prediction state — anonymous users see "View Predictions" + "Sign in to Predict"; authenticated users see "Make Predictions" or "View Predictions" + "Edit Picks". Users who already predicted are redirected from the predict form to the predictions view unless they explicitly click "Edit Picks" (`?edit`)
 
 ### Dashboard
 - **Live countdown timer**: Days, hours, minutes, seconds to the next race start with Titillium Web digit boxes

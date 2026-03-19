@@ -93,7 +93,7 @@ export default async function DashboardPage() {
                   <Button href={`/events/${nextEvent.id}/predictions?from=/`} variant="secondary" size="lg">
                     View Predictions
                   </Button>
-                  <Button href={`/events/${nextEvent.id}/predict`} variant="ghost" size="lg">
+                  <Button href={`/events/${nextEvent.id}/predict?edit`} variant="ghost" size="lg">
                     Edit Picks
                   </Button>
                 </div>

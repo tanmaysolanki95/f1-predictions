@@ -270,7 +270,7 @@ export default async function Page({
 
         {!hasResults && user && (
           <div className="flex justify-end">
-            <Button variant="primary" href={`/events/${eventId}/predict`}>
+            <Button variant="primary" href={`/events/${eventId}/predict?edit`}>
               Make / Edit predictions
             </Button>
           </div>
