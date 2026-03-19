@@ -11,17 +11,12 @@ export default async function LeaderboardPage({
   searchParams: Promise<{ season?: string }>;
 }) {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
   const { season } = await searchParams;
 
-  // Fetch available seasons for the selector
-  const { data: seasons } = await supabase
-    .from("seasons")
-    .select("year")
-    .order("year", { ascending: false });
+  const [{ data: { user } }, { data: seasons }] = await Promise.all([
+    supabase.auth.getUser(),
+    supabase.from("seasons").select("year").order("year", { ascending: false }),
+  ]);
 
   const seasonOptions = (seasons ?? []).map((s) => ({ value: String(s.year), label: `${s.year} Season` }));
 
@@ -47,21 +42,16 @@ export default async function LeaderboardPage({
     );
   }
 
-  // Fetch per-season data: events for the season, scores for those events, and profiles
-  const { data: seasonEvents } = await supabase
-    .from("events")
-    .select("id")
-    .eq("season_year", seasonYear);
+  const [{ data: seasonEvents }, { data: profiles }] = await Promise.all([
+    supabase.from("events").select("id").eq("season_year", seasonYear),
+    supabase.from("profiles").select("id, display_name"),
+  ]);
   const eventIds = (seasonEvents ?? []).map((e) => e.id);
 
   const { data: scores } = await supabase
     .from("scores")
     .select("user_id, total_points, event_id")
     .in("event_id", eventIds);
-
-  const { data: profiles } = await supabase
-    .from("profiles")
-    .select("id, display_name");
 
   // Aggregate points per user for the selected season
   const userPoints = new Map<string, { total: number; events: Set<number> }>();

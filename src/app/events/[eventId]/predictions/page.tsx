@@ -35,6 +35,7 @@ export default async function Page({
     { data: profiles },
     { data: sessionResults },
     { data: scores },
+    { data: { user } },
   ] = await Promise.all([
     supabase
       .from("events")
@@ -48,18 +49,13 @@ export default async function Page({
       .returns<Prediction[]>(),
     supabase.from("drivers").select("id, code").returns<Pick<Driver, "id" | "code">[]>(),
     supabase.from("profiles").select("id, display_name").returns<Pick<Profile, "id" | "display_name">[]>(),
-  
     supabase
       .from("session_results")
       .select("driver_id, position, session_type")
       .eq("event_id", Number(eventId)),
-  
     supabase.from("scores").select("user_id, total_points").eq("event_id", Number(eventId)),
+    supabase.auth.getUser(),
   ]);
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
 
   if (!event) {
     return (

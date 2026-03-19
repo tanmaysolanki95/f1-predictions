@@ -14,33 +14,21 @@ export default async function DashboardPage() {
   const supabase = await createClient();
   const today = new Date().toISOString().split("T")[0];
 
-  const { data: nextEvent } = await supabase
-    .from("events")
-    .select("*")
-    .gte("date", today)
-    .order("date", { ascending: true })
-    .limit(1)
-    .maybeSingle();
-
-  const { data: pastEvents } = await supabase
-    .from("events")
-    .select("round")
-    .lt("date", today)
-    .order("round", { ascending: false })
-    .limit(1)
-    .maybeSingle();
+  const [
+    { data: nextEvent },
+    { data: pastEvents },
+    { data: leaders },
+    { data: { user } },
+    news,
+  ] = await Promise.all([
+    supabase.from("events").select("*").gte("date", today).order("date", { ascending: true }).limit(1).maybeSingle(),
+    supabase.from("events").select("round").lt("date", today).order("round", { ascending: false }).limit(1).maybeSingle(),
+    supabase.from("leaderboard").select("user_id, display_name, total_points").order("total_points", { ascending: false }).limit(5),
+    supabase.auth.getUser(),
+    fetchNews(5),
+  ]);
 
   const completedRounds = pastEvents?.round ?? 0;
-
-  const { data: leaders } = await supabase
-    .from("leaderboard")
-    .select("user_id, display_name, total_points")
-    .order("total_points", { ascending: false })
-    .limit(5);
-
-  const news = await fetchNews(5);
-
-  const { data: { user } } = await supabase.auth.getUser();
 
   const hasPrediction = nextEvent && user
     ? !!(await supabase
