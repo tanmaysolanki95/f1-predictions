@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import Card from "@/components/Card";
 import Badge from "@/components/Badge";
 import Button from "@/components/Button";
+import { fetchNews } from "@/lib/newsFeed";
 
 const TOTAL_ROUNDS = 22;
 
@@ -36,6 +37,9 @@ export default async function DashboardPage() {
     .select("user_id, display_name, total_points")
     .order("total_points", { ascending: false })
     .limit(5);
+
+  // News headlines for the compact dashboard card
+  const news = await fetchNews(5);
 
   const nextEventStarted = nextEvent
     ? new Date(nextEvent.time ? `${nextEvent.date}T${nextEvent.time}` : `${nextEvent.date}T00:00:00Z`) <= new Date()
@@ -148,6 +152,32 @@ export default async function DashboardPage() {
             Latest Results
           </Button>
         </div>
+      </Card>
+
+      {/* News headlines compact card on dashboard */}
+      <Card title="F1 News" className="">
+        <div className="divide-y divide-[var(--border)]">
+          {news && news.length > 0 ? (
+            news.map((n) => (
+              <a key={n.url} href={n.url} target="_blank" rel="noopener noreferrer" className="flex items-center justify-between py-2">
+                <span className="text-sm text-white hover:text-[var(--f1-red)] transition-colors" style={{ fontFamily: 'var(--font-titillium)' }}>
+                  {n.title}
+                </span>
+                <span className="text-xs text-[var(--muted)]" style={{ fontFamily: 'var(--font-titillium)' }}>
+                  {(() => {
+                    const seconds = Math.floor((Date.now() - new Date(n.pubDate).getTime()) / 1000);
+                    if (seconds < 3600) return `${Math.floor(seconds / 60)}m`;
+                    if (seconds < 86400) return `${Math.floor(seconds / 3600)}h`;
+                    return `${Math.floor(seconds / 86400)}d`;
+                  })()} ago
+                </span>
+              </a>
+            ))
+          ) : (
+            <p className="text-sm text-[var(--muted)]">No news available</p>
+          )}
+        </div>
+        <Link href="/news" className="block text-center text-sm text-[#E10600] hover:underline mt-2">View All News →</Link>
       </Card>
     </div>
   );
