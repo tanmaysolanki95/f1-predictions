@@ -10,9 +10,6 @@ export default function DataTable({ headers, rows, className = '' }: DataTablePr
   const manyColumns = headers.length > 4;
   return (
     <div className={`relative w-full overflow-x-auto ${className} rounded-[var(--radius-lg)] border border-[var(--glass-border)]`}>
-      {manyColumns && (
-        <div className="absolute right-0 top-0 bottom-0 w-8 pointer-events-none" style={{ background: 'linear-gradient(to left, rgba(96,165,250,.15), rgba(96,165,250,0))' }} />
-      )}
       <table className="min-w-full divide-y divide-[var(--border)]">
         <thead className="bg-[var(--surface-elevated)]">
           <tr>
