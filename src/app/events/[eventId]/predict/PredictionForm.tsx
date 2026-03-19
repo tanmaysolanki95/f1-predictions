@@ -25,6 +25,8 @@ type Props = {
 
 type FormValues = Partial<Record<PredictionCategory, string>>;
 
+const RACE_POSITION_CATS: PredictionCategory[] = ["race_p1", "race_p2", "race_p3", "race_p10"];
+
 function buildInitialValues(prediction: Prediction | null): FormValues {
   if (!prediction) return {};
   const values: FormValues = {};
@@ -33,6 +35,26 @@ function buildInitialValues(prediction: Prediction | null): FormValues {
     if (v) values[cat as PredictionCategory] = v;
   }
   return values;
+}
+
+function findDuplicates(
+  vals: FormValues,
+  cats: PredictionCategory[],
+): Set<PredictionCategory> {
+  const seen = new Map<string, PredictionCategory>();
+  const dupes = new Set<PredictionCategory>();
+  for (const cat of cats) {
+    const id = vals[cat];
+    if (!id) continue;
+    const prev = seen.get(id);
+    if (prev) {
+      dupes.add(prev);
+      dupes.add(cat);
+    } else {
+      seen.set(id, cat);
+    }
+  }
+  return dupes;
 }
 
 export default function PredictionForm({ event, drivers, existingPrediction, isLocked }: Props) {
@@ -51,8 +73,16 @@ export default function PredictionForm({ event, drivers, existingPrediction, isL
 
   const [pickerCat, setPickerCat] = useState<PredictionCategory | null>(null);
 
+  const raceDupes = findDuplicates(values, RACE_POSITION_CATS);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (raceDupes.size > 0) {
+      setFeedback({ type: "error", message: "A driver can only appear once in race P1–P10. Please fix the highlighted duplicates." });
+      return;
+    }
+
     setSaving(true);
     setFeedback(null);
 
@@ -104,18 +134,21 @@ export default function PredictionForm({ event, drivers, existingPrediction, isL
   const renderSlot = (cat: PredictionCategory) => {
     const selectedId = values[cat];
     const driver = drivers.find((d) => d.id === selectedId) ?? null;
+    const isDupe = raceDupes.has(cat);
     return (
       <div key={cat} className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4 w-full">
         <span className="text-xs sm:text-sm sm:w-48 sm:shrink-0 text-gray-300" style={{ fontFamily: 'var(--font-titillium)' }}>{PREDICTION_LABELS[cat]}</span>
         <div className="flex-1">
           {driver ? (
-            <DriverCard
-              driver={driver}
-              compact
-              className={`w-full ${locked ? "opacity-75" : ""}`}
-              onClick={locked ? undefined : () => setPickerCat(cat)}
-              selected={!locked && driver?.id === selectedId}
-            />
+            <div className={isDupe ? "ring-2 ring-amber-500 rounded-[var(--radius-md)]" : ""}>
+              <DriverCard
+                driver={driver}
+                compact
+                className={`w-full ${locked ? "opacity-75" : ""}`}
+                onClick={locked ? undefined : () => setPickerCat(cat)}
+                selected={!locked && driver?.id === selectedId}
+              />
+            </div>
           ) : (
             <div
               onClick={locked ? undefined : () => setPickerCat(cat)}
@@ -127,6 +160,11 @@ export default function PredictionForm({ event, drivers, existingPrediction, isL
             >
               {locked ? "No prediction made" : `Tap to select`}
             </div>
+          )}
+          {isDupe && (
+            <p className="text-xs text-amber-400 mt-1" style={{ fontFamily: 'var(--font-titillium)' }}>
+              Duplicate — this driver is already selected in another position
+            </p>
           )}
         </div>
       </div>
