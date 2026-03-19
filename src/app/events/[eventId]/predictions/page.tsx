@@ -3,7 +3,10 @@ import Link from "next/link";
 import Badge from "@/components/Badge";
 import Button from "@/components/Button";
 import DataTable from "@/components/DataTable";
+import FallbackImage from "@/components/FallbackImage";
 import { createClient } from "@/lib/supabase/server";
+import { getCircuitImageUrl } from "@/lib/circuitImages";
+import { getCountryFlagUrl } from "@/lib/countryFlags";
 import type { Driver, Event, Prediction, Profile } from "@/types/database";
 
 function driverCode(
@@ -105,6 +108,9 @@ export default async function Page({
     day: "numeric",
   });
 
+  const circuitUrl = getCircuitImageUrl(event.circuit_id ?? "");
+  const flagUrl = getCountryFlagUrl(event.country);
+
   return (
     <div className="p-6 text-white animate-fade-in">
       <div className="max-w-5xl mx-auto px-4 py-8 space-y-6">
@@ -112,16 +118,45 @@ export default async function Page({
           &larr; Back to events
         </Button>
 
-        <header className="space-y-1">
-          <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-bold" style={{ fontFamily: 'var(--font-titillium)' }}>{event.name}</h1>
-            {event.is_sprint && <Badge label="Sprint" tone="sprint" />}
+        <Card className="w-full racing-stripe-bg relative overflow-hidden">
+          {circuitUrl && (
+            <FallbackImage src={circuitUrl} alt="" className="circuit-bg" />
+          )}
+          <div className="p-6 space-y-3 relative">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <span
+                  className="inline-flex items-center justify-center min-w-[28px] h-7 px-1.5 rounded-full bg-[var(--f1-red)] text-white text-[0.65rem] font-extrabold leading-none flex-none"
+                  style={{ fontFamily: "var(--font-titillium)" }}
+                >
+                  {`R${event.round}`}
+                </span>
+                <h1
+                  className="text-2xl md:text-3xl font-extrabold"
+                  style={{ fontFamily: "var(--font-titillium)" }}
+                >
+                  {event.name}
+                </h1>
+                {event.is_sprint && <Badge label="Sprint" tone="sprint" />}
+              </div>
+              {flagUrl && (
+                <FallbackImage
+                  src={flagUrl}
+                  alt={event.country}
+                  width={48}
+                  height={32}
+                  className="rounded-sm shadow-sm flex-none"
+                />
+              )}
+            </div>
+            <p
+              className="text-sm text-[var(--muted)]"
+              style={{ fontFamily: "var(--font-titillium)" }}
+            >
+              {event.circuit_name} &middot; {formattedDate}
+            </p>
           </div>
-          <p className="text-sm text-[var(--muted)]">
-            Round {event.round} &middot; {formattedDate} &middot;{" "}
-            {event.circuit_name}
-          </p>
-        </header>
+        </Card>
 
         {isEmpty ? (
           <Card>
