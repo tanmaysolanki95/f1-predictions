@@ -67,8 +67,8 @@ export default async function EventsPage() {
             );
 
             return (
-              <div key={ev.id}>
-                <Link href={isLocked ? `/events/${ev.id}/predictions` : `/events/${ev.id}/predict`} className="block">
+              <div key={ev.id} className="flex flex-col">
+                <Link href={isLocked ? `/events/${ev.id}/predictions` : `/events/${ev.id}/predict`} className="block flex-1">
                   <EventCard
                     raceName={ev.name}
                     date={formattedDate}
@@ -80,11 +80,16 @@ export default async function EventsPage() {
                     isNext={isNext}
                   />
                 </Link>
-                <div className="px-4 pb-3 flex items-center gap-2">
+                <div className="px-4 pb-3 flex items-center gap-2 flex-wrap">
                   {statusBadge}
                   <Button variant="ghost" href={`/events/${ev.id}/predictions`}>
                     View Picks
                   </Button>
+                  {isPast && (
+                    <Button variant="ghost" href={`/results?event=${ev.id}`}>
+                      View Results
+                    </Button>
+                  )}
                 </div>
               </div>
             );
