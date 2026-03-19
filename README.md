@@ -36,8 +36,8 @@ Run migrations in order against your Supabase project (SQL Editor):
 ```
 supabase/migrations/001_initial_schema.sql
 supabase/migrations/002_allowlist_and_driver_images.sql
-supabase/migrations/003_user_signups.sql
-supabase/migrations/004_lock_predictions_rls.sql
+supabase/migrations/003_lock_predictions_rls.sql
+supabase/migrations/004_tighten_role_grants.sql
 ```
 
 ## Features
