@@ -57,7 +57,7 @@ All consumers must handle `null` returns gracefully. Use `<FallbackImage>` (clie
 
 ### Auth
 
-- Middleware at `src/middleware.ts` uses `getSession()` (cookie-only, no network call) to gate access
+- Middleware at `src/middleware.ts` uses `getUser()` to gate access (validates against Supabase server; clears stale `sb-*` cookies on redirect to login)
 - The root layout (`src/app/layout.tsx`) calls `getUser()` once and passes `displayName` + `userId` to `<Nav>` — Nav does NOT make its own auth call
 - Server actions in `src/app/auth/actions.ts` validate inputs (type, length) before calling Supabase: login, signup, logout, resetPassword, updatePassword
 - Password reset flow: forgot-password → email → callback → reset-password
@@ -83,7 +83,7 @@ All dynamic pages use `cookies()` to opt out of static generation. Use `.maybeSi
 ### Free Tier Constraints
 
 The app is optimized for Supabase Free + Vercel Hobby:
-- Middleware uses `getSession()` not `getUser()` — avoids a network round-trip on every request
+- Middleware uses `getUser()` — validates session server-side and clears stale cookies on logout
 - Nav receives user props from server layout — no client-side `getUser()` on navigation
 - `/api/health` + `vercel.json` cron pings weekly to prevent Supabase inactivity pause
 - No `next/image` usage — plain `<img>` / `<FallbackImage>` avoids Vercel image optimization quota (5K transforms/month on Hobby)
@@ -96,5 +96,5 @@ The app is optimized for Supabase Free + Vercel Hobby:
 - Use inline styles where Tailwind classes suffice
 - Change RLS policies without a new numbered migration file
 - Use `<img onError>` in Server Components — use `<FallbackImage>` instead
-- Call `supabase.auth.getUser()` in middleware or client-side Nav — use `getSession()` in middleware, props from layout for Nav
+- Call `supabase.auth.getUser()` in client-side Nav — use props from layout for Nav instead
 - Use `next/image` for external CDN images — uses optimization quota

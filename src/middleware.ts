@@ -32,17 +32,24 @@ export async function middleware(req: NextRequest) {
     },
   );
 
-  const { data: { session } } = await supabase.auth.getSession();
+  const { data: { user } } = await supabase.auth.getUser();
   const { pathname } = req.nextUrl;
   const isAuthRoute = pathname.startsWith("/auth");
+  const isApiRoute = pathname.startsWith("/api");
 
-  if (!session && !isAuthRoute) {
+  if (!user && !isAuthRoute && !isApiRoute) {
     const url = req.nextUrl.clone();
     url.pathname = "/auth/login";
-    return NextResponse.redirect(url);
+    const redirect = NextResponse.redirect(url);
+    for (const cookie of req.cookies.getAll()) {
+      if (cookie.name.startsWith("sb-")) {
+        redirect.cookies.delete(cookie.name);
+      }
+    }
+    return redirect;
   }
 
-  if (session && (pathname === "/auth/login" || pathname === "/auth/signup" || pathname === "/auth/forgot-password")) {
+  if (user && (pathname === "/auth/login" || pathname === "/auth/signup" || pathname === "/auth/forgot-password")) {
     const url = req.nextUrl.clone();
     url.pathname = "/";
     return NextResponse.redirect(url);
