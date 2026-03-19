@@ -26,6 +26,15 @@ export default function Nav() {
     });
   }, [pathname]);
 
+  useEffect(() => {
+    if (open) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => { document.body.style.overflow = ""; };
+  }, [open]);
+
   async function handleLogout() {
     const supabase = createClient();
     await supabase.auth.signOut();
@@ -105,7 +114,7 @@ export default function Nav() {
         </div>
       </div>
       {/* Mobile Menu with transitions */}
-      <div className={`md:hidden border-t border-[var(--glass-border)] overflow-hidden transition-all duration-300 ${open ? "max-h-40" : "max-h-0"}`}>
+      <div className={`md:hidden border-t border-[var(--glass-border)] overflow-hidden transition-all duration-300 ${open ? "max-h-80" : "max-h-0"}`}>
         <div className="bg-[var(--surface)]">
           {LINKS.map((l) => (
             <Link
