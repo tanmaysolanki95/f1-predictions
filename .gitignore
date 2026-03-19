@@ -39,6 +39,9 @@ yarn-error.log*
 # supabase
 supabase/.temp/
 
+# opencode
+opencode.json
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
