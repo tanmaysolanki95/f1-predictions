@@ -346,3 +346,10 @@ body {
   mask-image: linear-gradient(to right, transparent, black 30%);
   -webkit-mask-image: linear-gradient(to right, transparent, black 30%);
 }
+
+.circuit-bg--hero {
+  width: 55%;
+  opacity: 0.4;
+  mask-image: linear-gradient(to right, transparent 5%, black 25%);
+  -webkit-mask-image: linear-gradient(to right, transparent 5%, black 25%);
+}

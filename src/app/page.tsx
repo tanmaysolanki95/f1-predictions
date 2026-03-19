@@ -54,7 +54,7 @@ export default async function DashboardPage() {
         {(() => {
           const circuitUrl = nextEvent ? getCircuitImageUrl(nextEvent.circuit_id ?? "") : null;
           return circuitUrl ? (
-            <FallbackImage src={circuitUrl} alt="" className="circuit-bg" />
+            <FallbackImage src={circuitUrl} alt="" className="circuit-bg circuit-bg--hero" />
           ) : null;
         })()}
         <div className="p-6 space-y-3 relative">
