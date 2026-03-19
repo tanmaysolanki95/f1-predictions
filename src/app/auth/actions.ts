@@ -3,9 +3,17 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 
+function safeRedirectPath(path: unknown): string {
+  if (typeof path !== "string" || !path.startsWith("/") || path.startsWith("//")) {
+    return "/";
+  }
+  return path;
+}
+
 export async function login(formData: FormData) {
   const email = formData.get("email");
   const password = formData.get("password");
+  const redirectTo = safeRedirectPath(formData.get("redirectTo"));
 
   if (typeof email !== "string" || !email.trim()) {
     return { error: "Email is required." };
@@ -21,13 +29,14 @@ export async function login(formData: FormData) {
     return { error: error.message };
   }
 
-  redirect("/");
+  redirect(redirectTo);
 }
 
 export async function signup(formData: FormData) {
   const email = formData.get("email");
   const password = formData.get("password");
   const displayName = formData.get("displayName");
+  const redirectTo = safeRedirectPath(formData.get("redirectTo"));
 
   if (typeof email !== "string" || !email.trim()) {
     return { error: "Email is required." };
@@ -50,13 +59,13 @@ export async function signup(formData: FormData) {
     return { error: error.message };
   }
 
-  redirect("/");
+  redirect(redirectTo);
 }
 
 export async function logout() {
   const supabase = await createClient();
   await supabase.auth.signOut();
-  redirect("/auth/login");
+  redirect("/");
 }
 
 export async function resetPassword(formData: FormData) {

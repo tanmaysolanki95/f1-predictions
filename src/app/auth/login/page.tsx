@@ -1,12 +1,15 @@
 "use client";
 
 import { useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { login } from "../actions";
 import Link from "next/link";
 import Button from "@/components/Button";
 import Card from "@/components/Card";
 
 export default function LoginPage() {
+  const searchParams = useSearchParams();
+  const redirectTo = searchParams.get("redirect");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -16,6 +19,9 @@ export default function LoginPage() {
     setError(null);
 
     const formData = new FormData(e.currentTarget);
+    if (redirectTo) {
+      formData.set("redirectTo", redirectTo);
+    }
     const result = await login(formData);
 
     if (result?.error) {
@@ -24,11 +30,22 @@ export default function LoginPage() {
     }
   }
 
+  const signupHref = redirectTo
+    ? `/auth/signup?redirect=${encodeURIComponent(redirectTo)}`
+    : "/auth/signup";
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#0F1117] racing-stripe-bg px-4">
       <Card className="w-full max-w-md">
         <div className="border-t-2 border-[var(--f1-red)]" />
         <div className="p-6 space-y-4">
+          <Link
+            href={redirectTo || "/"}
+            className="inline-flex items-center gap-1 text-sm text-white/50 hover:text-white/80 transition-colors"
+            style={{ fontFamily: 'var(--font-titillium)' }}
+          >
+            &larr; Back
+          </Link>
           <h2 className="text-2xl font-bold" style={{ fontFamily: 'var(--font-titillium)' }}>Sign in</h2>
           <p className="text-sm text-white/60">F1 Predictions Tracker</p>
 
@@ -78,7 +95,7 @@ export default function LoginPage() {
 
           <p className="mt-6 text-center text-sm text-white/40">
             Don&apos;t have an account?{" "}
-            <Link href="/auth/signup" className="text-[var(--f1-red)] hover:underline" style={{ fontFamily: 'var(--font-titillium)' }}>
+            <Link href={signupHref} className="text-[var(--f1-red)] hover:underline" style={{ fontFamily: 'var(--font-titillium)' }}>
               Sign up
             </Link>
           </p>

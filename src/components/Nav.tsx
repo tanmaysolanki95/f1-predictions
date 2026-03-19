@@ -35,7 +35,7 @@ export default function Nav({
   async function handleLogout() {
     const supabase = createClient();
     await supabase.auth.signOut();
-    router.push("/auth/login");
+    window.location.href = "/";
   }
 
   if (pathname.startsWith("/auth")) return null;
@@ -98,28 +98,34 @@ export default function Nav({
             </nav>
           </div>
           <div className="flex items-center gap-3">
-            {displayName && (
-              <span className="hidden md:flex items-center gap-2 text-sm text-white/70 border-l border-[var(--glass-border)] pl-3 pr-3 py-1">
-                <span className="w-2 h-2 rounded-full bg-emerald-400" />
-                {displayName}
-              </span>
-            )}
-            {displayName && (
-              <button
-                onClick={handleLogout}
-                className="hidden md:block text-xs text-white/40 hover:text-white/70 transition-colors border-l border-[var(--glass-border)] ml-2 pl-3 py-1"
+            {displayName ? (
+              <>
+                <span className="hidden md:flex items-center gap-2 text-sm text-white/70 border-l border-[var(--glass-border)] pl-3 pr-3 py-1">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400" />
+                  {displayName}
+                </span>
+                <button
+                  onClick={handleLogout}
+                  className="hidden md:block text-xs text-white/40 hover:text-white/70 transition-colors border-l border-[var(--glass-border)] ml-2 pl-3 py-1"
+                >
+                  Sign out
+                </button>
+                <Link href="/auth/change-password" className="hidden md:block text-xs text-white/40 hover:text-white/70 transition-colors border-l border-[var(--glass-border)] ml-2 pl-3 py-1">
+                  Change password
+                </Link>
+                {userId && (
+                  <Link href={`/profile/${userId}`} className="hidden md:block text-xs text-white/40 hover:text-white/70 transition-colors border-l border-[var(--glass-border)] ml-2 pl-3 py-1">
+                    My Profile
+                  </Link>
+                )}
+              </>
+            ) : (
+              <Link
+                href={`/auth/login?redirect=${encodeURIComponent(pathname)}`}
+                className="hidden md:flex items-center gap-2 text-sm font-medium text-white/80 hover:text-white border-l border-[var(--glass-border)] pl-3 py-1 transition-colors"
+                style={{ fontFamily: 'var(--font-titillium)' }}
               >
-                Sign out
-              </button>
-            )}
-            {displayName && (
-              <Link href="/auth/change-password" className="hidden md:block text-xs text-white/40 hover:text-white/70 transition-colors border-l border-[var(--glass-border)] ml-2 pl-3 py-1">
-                Change password
-              </Link>
-            )}
-            {userId && (
-              <Link href={`/profile/${userId}`} className="hidden md:block text-xs text-white/40 hover:text-white/70 transition-colors border-l border-[var(--glass-border)] ml-2 pl-3 py-1">
-                My Profile
+                Sign in
               </Link>
             )}
             <button
@@ -147,22 +153,31 @@ export default function Nav({
               {l.label}
             </Link>
           ))}
-          {displayName && (
-            <button
-              onClick={handleLogout}
-              className="block w-full text-left px-4 py-2 text-sm text-white/40 hover:text-white/70"
+          {displayName ? (
+            <>
+              <button
+                onClick={handleLogout}
+                className="block w-full text-left px-4 py-2 text-sm text-white/40 hover:text-white/70"
+              >
+                Sign out
+              </button>
+              <Link href="/auth/change-password" onClick={() => setOpen(false)} className="block w-full px-4 py-2 text-sm text-white/40 hover:text-white/70">
+                Change password
+              </Link>
+              {userId && (
+                <Link href={`/profile/${userId}`} onClick={() => setOpen(false)} className="block w-full px-4 py-2 text-sm text-white/40 hover:text-white/70">
+                  My Profile
+                </Link>
+              )}
+            </>
+          ) : (
+            <Link
+              href={`/auth/login?redirect=${encodeURIComponent(pathname)}`}
+              onClick={() => setOpen(false)}
+              className="block px-4 py-2 text-sm font-medium text-[var(--f1-red)] hover:bg-white/5"
+              style={{ fontFamily: 'var(--font-titillium)' }}
             >
-              Sign out
-            </button>
-          )}
-          {displayName && (
-            <Link href="/auth/change-password" onClick={() => setOpen(false)} className="block w-full px-4 py-2 text-sm text-white/40 hover:text-white/70">
-              Change password
-            </Link>
-          )}
-          {userId && (
-            <Link href={`/profile/${userId}`} onClick={() => setOpen(false)} className="block w-full px-4 py-2 text-sm text-white/40 hover:text-white/70">
-              My Profile
+              Sign in
             </Link>
           )}
         </div>

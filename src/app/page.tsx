@@ -79,6 +79,15 @@ export default async function DashboardPage() {
                 <Button href={`/events/${nextEvent.id}/predictions?from=/`} variant="secondary" size="lg">
                   View Predictions
                 </Button>
+              ) : !user ? (
+                <div className="flex items-center gap-3 flex-wrap">
+                  <Button href={`/events/${nextEvent.id}/predictions?from=/`} variant="secondary" size="lg">
+                    View Predictions
+                  </Button>
+                  <Button href={`/auth/login?redirect=${encodeURIComponent(`/events/${nextEvent.id}/predict`)}`} variant="primary" size="lg">
+                    Sign in to Predict
+                  </Button>
+                </div>
               ) : hasPrediction ? (
                 <div className="flex items-center gap-3 flex-wrap">
                   <Button href={`/events/${nextEvent.id}/predictions?from=/`} variant="secondary" size="lg">

@@ -268,7 +268,7 @@ export default async function Page({
           </Card>
         )}
 
-        {!hasResults && (
+        {!hasResults && user && (
           <div className="flex justify-end">
             <Button variant="primary" href={`/events/${eventId}/predict`}>
               Make / Edit predictions

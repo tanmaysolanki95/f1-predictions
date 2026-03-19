@@ -8,13 +8,16 @@ import Button from "@/components/Button";
 export default async function EventsPage() {
   const supabase = await createClient();
 
-  const { data: events, error } = await supabase
-    .from("events")
-    .select(
-      "id, round, name, date, time, country, circuit_name, circuit_id, is_sprint, predictions_locked"
-    )
-    .eq("season_year", 2026)
-    .order("round", { ascending: true });
+  const [{ data: events, error }, { data: { user } }] = await Promise.all([
+    supabase
+      .from("events")
+      .select(
+        "id, round, name, date, time, country, circuit_name, circuit_id, is_sprint, predictions_locked"
+      )
+      .eq("season_year", 2026)
+      .order("round", { ascending: true }),
+    supabase.auth.getUser(),
+  ]);
 
   if (error) {
     return (
@@ -57,10 +60,12 @@ export default async function EventsPage() {
 
             const predictionsHref = `/events/${ev.id}/predictions?from=/events`;
             const predictHref = `/events/${ev.id}/predict`;
+            const canPredict = user && !isPast && !isLocked;
+            const cardHref = canPredict ? predictHref : predictionsHref;
 
             return (
               <div key={ev.id} className="flex flex-col">
-                <Link href={isPast || isLocked ? predictionsHref : predictHref} className="block flex-1">
+                <Link href={cardHref} className="block flex-1">
                   <EventCard
                     raceName={ev.name}
                     date={formattedDate}
@@ -75,7 +80,7 @@ export default async function EventsPage() {
                 <div className="px-4 pb-3 flex items-center gap-2 flex-wrap">
                   {statusBadge}
                   {!isPast && (
-                    <Button variant="ghost" href={isLocked ? predictionsHref : predictHref}>
+                    <Button variant="ghost" href={canPredict ? predictHref : predictionsHref}>
                       View Event
                     </Button>
                   )}

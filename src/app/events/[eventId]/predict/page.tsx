@@ -1,3 +1,4 @@
+import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import type { Driver, Event, Prediction } from "@/types/database";
 import PredictionForm from "./PredictionForm";
@@ -29,6 +30,10 @@ export default async function Page({
   const {
     data: { user },
   } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect(`/auth/login?redirect=${encodeURIComponent(`/events/${eventId}/predict`)}`);
+  }
 
   let existingPrediction: Prediction | null = null;
   if (user) {

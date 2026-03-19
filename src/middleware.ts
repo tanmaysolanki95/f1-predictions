@@ -37,9 +37,15 @@ export async function middleware(req: NextRequest) {
   const isAuthRoute = pathname.startsWith("/auth");
   const isApiRoute = pathname.startsWith("/api");
 
-  if (!user && !isAuthRoute && !isApiRoute) {
+  // Routes that require authentication (write actions)
+  const isProtectedRoute =
+    /^\/events\/[^/]+\/predict(\/|$)/.test(pathname) ||
+    pathname === "/auth/change-password";
+
+  if (!user && !isAuthRoute && !isApiRoute && isProtectedRoute) {
     const url = req.nextUrl.clone();
     url.pathname = "/auth/login";
+    url.searchParams.set("redirect", pathname);
     const redirect = NextResponse.redirect(url);
     for (const cookie of req.cookies.getAll()) {
       if (cookie.name.startsWith("sb-")) {
