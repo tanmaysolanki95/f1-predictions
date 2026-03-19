@@ -42,11 +42,17 @@ supabase/migrations/004_lock_predictions_rls.sql
 
 ## Features
 
+### Public Browsing
+- **No login required**: Dashboard, events, leaderboard, news, predictions, and profiles are all viewable without an account
+- **Auth-gated actions**: Only the prediction form and change-password page require authentication — enforced by middleware with a server-side safety net
+- **Redirect flow**: Unauthenticated users hitting a protected page are redirected to login with a `?redirect=` param, then returned to their original page after sign-in
+- **Smart Nav**: Shows "Sign in" link for anonymous visitors; shows user info + sign out/change password/profile for authenticated users
+
 ### Predictions
 - **Race predictions**: Qualifying Pole, P1, P2, P3, P10
 - **Sprint predictions** (sprint weekends only): Sprint Qualifying Pole, Sprint P1
 - **Duplicate prevention**: Race positions P1–P10 must be unique drivers (pole excluded from this check)
-- **Smart routing**: Dashboard CTA adapts based on whether you've already predicted — shows "View Predictions" + "Edit Picks" if you have, or "Make Predictions" if you haven't
+- **Smart routing**: Dashboard CTA adapts based on auth and prediction state — anonymous users see "View Predictions" + "Sign in to Predict"; authenticated users see "Make Predictions" or "View Predictions" + "Edit Picks"
 
 ### Dashboard
 - **Live countdown timer**: Days, hours, minutes, seconds to the next race start with Titillium Web digit boxes
@@ -58,7 +64,7 @@ supabase/migrations/004_lock_predictions_rls.sql
 ### Events
 - **Country flag images**: Real flags from flagcdn.com on each event card
 - **Visual status**: Past events dimmed (opacity + grayscale), next event highlighted with red glow
-- **Smart card links**: Completed events → predictions + results view, upcoming events → predict form
+- **Smart card links**: Completed events → predictions + results view, upcoming events → predict form (authenticated) or predictions view (anonymous)
 
 ### Predictions + Results (Combined View)
 - **Picks table**: All users' predictions for the event
@@ -153,7 +159,7 @@ vercel.json                               # Cron: weekly health ping (prevents S
 
 This app is designed to stay within Supabase Free and Vercel Hobby tier limits:
 
-- **Auth**: Middleware uses `getUser()` — validates the session server-side and clears stale `sb-*` cookies on redirect to login (prevents stuck auth state)
+- **Auth**: Middleware only gates write-action routes (`/events/*/predict`, `/auth/change-password`) — most pages are publicly accessible. Uses `getUser()` to validate sessions and clears stale `sb-*` cookies on redirect
 - **Nav**: Receives user info as props from the server layout — no client-side auth call on navigation
 - **Query parallelization**: All pages use `Promise.all` for independent queries (dashboard: 5 parallel, predictions: 7 parallel, leaderboard: 2+2 parallel)
 - **Predictions page**: Session results consolidated into a single bulk query with JS-side filtering

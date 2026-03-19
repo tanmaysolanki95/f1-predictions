@@ -59,20 +59,26 @@ All consumers must handle `null` returns gracefully. Use `<FallbackImage>` (clie
 
 ### Auth
 
-- Middleware at `src/middleware.ts` uses `getUser()` to gate access (validates against Supabase server; clears stale `sb-*` cookies on redirect to login)
+- **Public browsing**: Most pages are accessible without authentication. Middleware only gates write-action routes (`/events/[eventId]/predict`, `/auth/change-password`). All other routes (dashboard, events, leaderboard, news, predictions, profiles) are publicly viewable.
+- Middleware at `src/middleware.ts` uses `getUser()` and only redirects unauthenticated users on protected routes. Redirects include `?redirect=` so users return to their original page after login. Stale `sb-*` cookies are cleared on redirect.
 - API routes (`/api/*`) are excluded from auth redirect
 - The root layout (`src/app/layout.tsx`) calls `getUser()` once and passes `displayName` + `userId` to `<Nav>` — Nav does NOT make its own auth call
+- Nav shows "Sign in" link (with `?redirect=` carrying the current pathname) for unauthenticated users; shows user info + sign out/change password/profile links for authenticated users
 - Server actions in `src/app/auth/actions.ts` validate inputs (type, length) before calling Supabase: login, signup, logout, resetPassword, updatePassword
+- `login()` and `signup()` accept an optional `redirectTo` form field — after successful auth, the user is redirected there instead of always `/`. The redirect path is validated against open redirect (`safeRedirectPath`: must start with `/`, must not start with `//`)
+- Sign-out uses `window.location.href = "/"` (hard navigation) to force the server layout to re-evaluate auth state and update Nav
 - Password reset flow: forgot-password → email → callback → reset-password
 - The auth callback route validates the `next` parameter against open redirect (must start with `/`, must not start with `//`)
+- Login and signup pages always show a "← Back" link — points to the `?redirect=` param value if present, otherwise to `/` (dashboard). The redirect param is preserved when navigating between login ↔ signup
+- The predict form page (`/events/[eventId]/predict`) has a server-side redirect to login as a safety net behind middleware
 
 ### Pages
 
 All dynamic pages use `cookies()` to opt out of static generation. Use `.maybeSingle()` instead of `.single()` for queries that may return 0 rows. Parallelize independent queries with `Promise.all`.
 
-- **Dashboard** (`/`): Live `<RaceCountdown>` targeting `event.date + event.time`, circuit layout as hero background, leaderboard preview, news headlines. Smart CTA: "Make Predictions" / "View Predictions" + "Edit Picks" based on existing prediction. 5 queries parallelized.
-- **Events** (`/events`): Country flag images via `<FallbackImage>`, past events dimmed (`opacity-50 grayscale`), next event highlighted with red glow. Completed events link to predictions (combined results view), upcoming link to predict form.
-- **Predictions** (`/events/[eventId]/predictions`): Combined picks + results view. Hero card with circuit image + flag. For completed events: Actual Results summary card, correct/incorrect pick highlighting (emerald ✓ / dimmed ✗), points column. Context-aware back button via `?from=` param. 7 queries parallelized.
+- **Dashboard** (`/`): Live `<RaceCountdown>` targeting `event.date + event.time`, circuit layout as hero background, leaderboard preview, news headlines. Smart CTA: "Make Predictions" / "View Predictions" + "Edit Picks" based on existing prediction. For anonymous users: "View Predictions" + "Sign in to Predict". 5 queries parallelized.
+- **Events** (`/events`): Country flag images via `<FallbackImage>`, past events dimmed (`opacity-50 grayscale`), next event highlighted with red glow. Completed events link to predictions (combined results view), upcoming link to predict form. Anonymous users always link to predictions view (never predict form).
+- **Predictions** (`/events/[eventId]/predictions`): Combined picks + results view. Hero card with circuit image + flag. For completed events: Actual Results summary card, correct/incorrect pick highlighting (emerald ✓ / dimmed ✗), points column. "Make / Edit predictions" button hidden for anonymous users. Context-aware back button via `?from=` param. 7 queries parallelized.
 - **Leaderboard** (`/leaderboard`): Season selector via `<NavigableSelect>` (`?season=` search param), per-season standings computed from scores + events join. Queries parallelized in two batches.
 - **News** (`/news`): Motorsport.com RSS feed, 20 article cards with thumbnails, ISR revalidation every 15 minutes.
 - **Profile** (`/profile/[userId]`): Season tabs, per-event prediction breakdown. `<BackButton>` uses `router.back()` for context-aware navigation.
