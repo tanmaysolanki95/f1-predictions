@@ -16,7 +16,7 @@ export default async function DashboardPage() {
     .gte("date", today)
     .order("date", { ascending: true })
     .limit(1)
-    .single();
+    .maybeSingle();
 
   const { data: pastEvents } = await supabase
     .from("events")
@@ -24,7 +24,7 @@ export default async function DashboardPage() {
     .lt("date", today)
     .order("round", { ascending: false })
     .limit(1)
-    .single();
+    .maybeSingle();
 
   const completedRounds = pastEvents?.round ?? 0;
 
