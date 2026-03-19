@@ -38,8 +38,18 @@ export default async function DashboardPage() {
     .order("total_points", { ascending: false })
     .limit(5);
 
-  // News headlines for the compact dashboard card
   const news = await fetchNews(5);
+
+  const { data: { user } } = await supabase.auth.getUser();
+
+  const hasPrediction = nextEvent && user
+    ? !!(await supabase
+        .from("predictions")
+        .select("id", { count: "exact", head: true })
+        .eq("event_id", nextEvent.id)
+        .eq("user_id", user.id)
+        .then(r => r.count))
+    : false;
 
   const nextEventStarted = nextEvent
     ? new Date(nextEvent.time ? `${nextEvent.date}T${nextEvent.time}` : `${nextEvent.date}T00:00:00Z`) <= new Date()
@@ -81,6 +91,15 @@ export default async function DashboardPage() {
                 <Button href={`/events/${nextEvent.id}/predictions`} variant="secondary" size="lg">
                   View Predictions
                 </Button>
+              ) : hasPrediction ? (
+                <div className="flex items-center gap-3 flex-wrap">
+                  <Button href={`/events/${nextEvent.id}/predictions`} variant="secondary" size="lg">
+                    View Predictions
+                  </Button>
+                  <Button href={`/events/${nextEvent.id}/predict`} variant="ghost" size="lg">
+                    Edit Picks
+                  </Button>
+                </div>
               ) : (
                 <Button href={`/events/${nextEvent.id}/predict`} variant="primary" size="lg">
                   Make Predictions
