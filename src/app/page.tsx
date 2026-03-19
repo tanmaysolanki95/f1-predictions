@@ -88,12 +88,12 @@ export default async function DashboardPage() {
               </p>
               <RaceCountdown targetDate={nextEvent.date} targetTime={nextEvent.time} />
               {nextEventLocked ? (
-                <Button href={`/events/${nextEvent.id}/predictions`} variant="secondary" size="lg">
+                <Button href={`/events/${nextEvent.id}/predictions?from=/`} variant="secondary" size="lg">
                   View Predictions
                 </Button>
               ) : hasPrediction ? (
                 <div className="flex items-center gap-3 flex-wrap">
-                  <Button href={`/events/${nextEvent.id}/predictions`} variant="secondary" size="lg">
+                  <Button href={`/events/${nextEvent.id}/predictions?from=/`} variant="secondary" size="lg">
                     View Predictions
                   </Button>
                   <Button href={`/events/${nextEvent.id}/predict`} variant="ghost" size="lg">

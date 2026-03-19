@@ -91,7 +91,7 @@ export default function PredictionForm({ event, drivers, existingPrediction, isL
         .upsert(row, { onConflict: "user_id,event_id" });
 
       if (error) throw error;
-      router.push(`/events/${event.id}/predictions`);
+      router.push(`/events/${event.id}/predictions?from=/events`);
     } catch (err: unknown) {
       const message =
         err instanceof Error ? err.message : "Failed to save predictions.";

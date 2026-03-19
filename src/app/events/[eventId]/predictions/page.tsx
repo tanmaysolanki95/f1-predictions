@@ -17,12 +17,23 @@ function driverCode(
   return driversMap.get(driverId) ?? "\u2014";
 }
 
+const BACK_LABELS: Record<string, string> = {
+  "/": "Dashboard",
+  "/events": "Events",
+  "/leaderboard": "Leaderboard",
+};
+
 export default async function Page({
   params,
+  searchParams,
 }: {
   params: Promise<{ eventId: string }>;
+  searchParams: Promise<{ from?: string }>;
 }) {
   const { eventId } = await params;
+  const { from } = await searchParams;
+  const backHref = from && BACK_LABELS[from] ? from : "/events";
+  const backLabel = BACK_LABELS[backHref] ?? "Events";
   const supabase = await createClient();
 
   const [{ data: event }, { data: predictions }, { data: drivers }, { data: profiles }] =
@@ -114,8 +125,8 @@ export default async function Page({
   return (
     <div className="p-6 text-white animate-fade-in">
       <div className="max-w-5xl mx-auto px-4 py-8 space-y-6">
-        <Button variant="ghost" size="sm" href="/events">
-          &larr; Back to events
+        <Button variant="ghost" size="sm" href={backHref}>
+          &larr; Back to {backLabel}
         </Button>
 
         <Card className="w-full racing-stripe-bg relative overflow-hidden">
