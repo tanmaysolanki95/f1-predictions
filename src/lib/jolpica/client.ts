@@ -4,11 +4,13 @@ import type {
   ResultsResponse,
   SprintResponse,
   DriversResponse,
+  DriverStandingsResponse,
   JolpicaRaceSchedule,
   JolpicaQualifyingResult,
   JolpicaRaceResult,
   JolpicaSprintResult,
   JolpicaDriver,
+  JolpicaDriverStanding,
 } from "./types";
 
 const BASE_URL = "https://api.jolpi.ca/ergast/f1";
@@ -84,6 +86,16 @@ export async function getDrivers(
     `/${season}/drivers.json?limit=100`,
   );
   return data.MRData.DriverTable.Drivers;
+}
+
+export async function getDriverStandings(
+  season: number | "current" = "current",
+): Promise<JolpicaDriverStanding[]> {
+  const data = await fetchJson<DriverStandingsResponse>(
+    `/${season}/driverstandings.json?limit=100`,
+  );
+  const list = data.MRData.StandingsTable.StandingsLists[0];
+  return list?.DriverStandings ?? [];
 }
 
 export function isSprintWeekend(race: JolpicaRaceSchedule): boolean {

@@ -191,6 +191,34 @@ export interface JolpicaDriverTable {
 
 export type DriversResponse = JolpicaResponse<"DriverTable", JolpicaDriverTable>;
 
+// ── Driver standings (includes constructor/team per driver) ──
+// GET /ergast/f1/{season}/driverstandings/
+
+export interface JolpicaDriverStanding {
+  position: string;
+  positionText: string;
+  points: string;
+  wins: string;
+  Driver: JolpicaDriver;
+  Constructors: JolpicaConstructor[];
+}
+
+export interface JolpicaDriverStandingsList {
+  season: string;
+  round: string;
+  DriverStandings: JolpicaDriverStanding[];
+}
+
+export interface JolpicaDriverStandingsTable {
+  season?: string;
+  StandingsLists: JolpicaDriverStandingsList[];
+}
+
+export type DriverStandingsResponse = JolpicaResponse<
+  "StandingsTable",
+  JolpicaDriverStandingsTable
+>;
+
 // ── Constructor standings (for team info) ───────────────────
 // GET /ergast/f1/{season}/constructorstandings/
 

@@ -1,0 +1,38 @@
+name: Refresh Season Data (Drivers, Events, Calendar)
+
+on:
+  schedule:
+    # Feb 1 at 12:00 UTC — pre-season, calendar is usually published by then
+    - cron: "0 12 1 2 *"
+  workflow_dispatch:
+    inputs:
+      season:
+        description: "Season year (e.g. 2027)"
+        required: true
+
+env:
+  SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+  SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+
+jobs:
+  refresh-season:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - run: npm ci
+
+      - name: Refresh season data
+        run: |
+          if [ -z "$SEASON" ]; then
+            export SEASON=$(date +%Y)
+            echo "Scheduled run — derived SEASON=$SEASON"
+          fi
+          npx tsx scripts/refresh-season.ts
+        env:
+          SEASON: ${{ github.event.inputs.season || '' }}

@@ -84,6 +84,10 @@ All dynamic pages use `cookies()` to opt out of static generation. Use `.maybeSi
 - **News** (`/news`): Motorsport.com RSS feed, 20 article cards with thumbnails, ISR revalidation every 15 minutes.
 - **Profile** (`/profile/[userId]`): Season tabs, per-event prediction breakdown. `<BackButton>` uses `router.back()` for context-aware navigation.
 
+### Season Refresh Script
+
+`scripts/refresh-season.ts` loads pre-season data from the Jolpica F1 API. Requires `SEASON` env var (4-digit year). Upserts the season row, all events from the calendar, and all drivers. Preserves existing `headshot_url` and `team_colour` values. Tries current season's driver standings for team info, falls back to previous season. GitHub Actions workflow runs Feb 1 or on demand.
+
 ### Scoring Script
 
 `scripts/fetch-and-score.ts` supports three modes via `ROUND` env var:

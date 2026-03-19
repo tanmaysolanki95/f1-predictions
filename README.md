@@ -96,6 +96,15 @@ supabase/migrations/004_tighten_role_grants.sql
 - **Racing motif CSS**: `.racing-stripe-bg`, `.carbon-fiber-bg`, `.checkered-bg` classes
 - **Circuit background variants**: `.circuit-bg` (subtle, 15% opacity) and `.circuit-bg--hero` (prominent, 40% opacity with edge fade)
 
+## Season Refresh
+
+Pre-season data (drivers, events, calendar) is loaded from the Jolpica F1 API:
+
+- **Automated**: GitHub Actions runs Feb 1 at 12:00 UTC — derives the current year automatically
+- **Manual**: `SEASON=2027 npx tsx scripts/refresh-season.ts` or trigger via GitHub Actions workflow dispatch
+- **Idempotent**: Safe to run multiple times — upserts season, events, and drivers without overwriting manually-set headshot URLs or team colours
+- **Team info**: Pulls driver-team associations from current season standings; falls back to the previous season if standings aren't available yet (pre-season)
+
 ## Scoring
 
 Results are fetched from the Jolpica F1 API and scored automatically:
