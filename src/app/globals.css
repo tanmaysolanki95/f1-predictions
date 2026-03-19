@@ -290,3 +290,59 @@ body {
 .safe-bottom {
   padding-bottom: env(safe-area-inset-bottom, 0px);
 }
+.countdown {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.countdown-segment {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: var(--surface-elevated);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  padding: 0.5rem 0.75rem;
+  min-width: 56px;
+}
+
+.countdown-value {
+  font-family: var(--font-titillium);
+  font-weight: 900;
+  font-size: 1.75rem;
+  line-height: 1;
+  color: white;
+}
+
+.countdown-label {
+  font-family: var(--font-titillium);
+  font-size: 0.625rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+.countdown-separator {
+  font-family: var(--font-titillium);
+  font-weight: 700;
+  font-size: 1.5rem;
+  color: var(--muted);
+  padding-bottom: 12px;
+}
+
+.circuit-bg {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 40%;
+  opacity: 0.07;
+  object-fit: contain;
+  object-position: right center;
+  pointer-events: none;
+  mask-image: linear-gradient(to right, transparent, black 30%);
+  -webkit-mask-image: linear-gradient(to right, transparent, black 30%);
+}
