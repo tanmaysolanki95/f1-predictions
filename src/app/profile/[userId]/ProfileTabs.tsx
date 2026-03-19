@@ -21,9 +21,6 @@ type EventWithPicks = {
     p10: string;
     sprintPole?: string;
     sprintP1?: string;
-    sprintP2?: string;
-    sprintP3?: string;
-    sprintP10?: string;
   } | null;
   score: {
     total: number;
@@ -57,9 +54,6 @@ const RACE_CATEGORIES: CategoryDef[] = [
 const SPRINT_CATEGORIES: CategoryDef[] = [
   { label: "Sprint Pole", predKey: "sprintPole", breakdownKey: "sprintPole" },
   { label: "Sprint P1", predKey: "sprintP1", breakdownKey: "sprintP1" },
-  { label: "Sprint P2", predKey: "sprintP2", breakdownKey: "sprintP2" },
-  { label: "Sprint P3", predKey: "sprintP3", breakdownKey: "sprintP3" },
-  { label: "Sprint P10", predKey: "sprintP10", breakdownKey: "sprintP10" },
 ];
 
 export default function ProfileTabs({ seasons, currentSeason, seasonData }: Props) {

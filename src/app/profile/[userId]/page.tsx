@@ -23,9 +23,6 @@ type EventWithPicks = {
     p10: string;
     sprintPole?: string;
     sprintP1?: string;
-    sprintP2?: string;
-    sprintP3?: string;
-    sprintP10?: string;
   } | null;
   score: {
     total: number;
@@ -119,14 +116,11 @@ export default async function ProfilePage({ params }: { params: Promise<{ userId
           p10: r(pred.race_p10_driver_id),
           sprintPole: ev.is_sprint ? r(pred.sprint_pole_driver_id) : undefined,
           sprintP1: ev.is_sprint ? r(pred.sprint_p1_driver_id) : undefined,
-          sprintP2: ev.is_sprint ? r(pred.sprint_p2_driver_id) : undefined,
-          sprintP3: ev.is_sprint ? r(pred.sprint_p3_driver_id) : undefined,
-          sprintP10: ev.is_sprint ? r(pred.sprint_p10_driver_id) : undefined,
         } : null,
         score: score ? {
           total: score.total_points,
           racePoints: score.race_pole_points + score.race_p1_points + score.race_p2_points + score.race_p3_points + score.race_p10_points,
-          sprintPoints: score.sprint_pole_points + score.sprint_p1_points + score.sprint_p2_points + score.sprint_p3_points + score.sprint_p10_points,
+          sprintPoints: score.sprint_pole_points + score.sprint_p1_points,
           breakdown: {
             pole: score.race_pole_points,
             p1: score.race_p1_points,
@@ -135,9 +129,6 @@ export default async function ProfilePage({ params }: { params: Promise<{ userId
             p10: score.race_p10_points,
             sprintPole: score.sprint_pole_points,
             sprintP1: score.sprint_p1_points,
-            sprintP2: score.sprint_p2_points,
-            sprintP3: score.sprint_p3_points,
-            sprintP10: score.sprint_p10_points,
           },
         } : null,
       };

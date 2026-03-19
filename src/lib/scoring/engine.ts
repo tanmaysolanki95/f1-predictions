@@ -43,9 +43,9 @@ export function computeScore(
 
   const sprint_pole_points = checkPrediction(maps.qualifying, 1, prediction.sprint_pole_driver_id);
   const sprint_p1_points = checkPrediction(maps.sprint, 1, prediction.sprint_p1_driver_id);
-  const sprint_p2_points = checkPrediction(maps.sprint, 2, prediction.sprint_p2_driver_id);
-  const sprint_p3_points = checkPrediction(maps.sprint, 3, prediction.sprint_p3_driver_id);
-  const sprint_p10_points = checkPrediction(maps.sprint, 10, prediction.sprint_p10_driver_id);
+  const sprint_p2_points = 0;
+  const sprint_p3_points = 0;
+  const sprint_p10_points = 0;
 
   const total_points =
     race_pole_points +
@@ -54,10 +54,7 @@ export function computeScore(
     race_p3_points +
     race_p10_points +
     sprint_pole_points +
-    sprint_p1_points +
-    sprint_p2_points +
-    sprint_p3_points +
-    sprint_p10_points;
+    sprint_p1_points;
 
   return {
     user_id: prediction.user_id,

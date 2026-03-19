@@ -167,7 +167,4 @@ export const RACE_CATEGORIES: PredictionCategory[] = [
 export const SPRINT_CATEGORIES: PredictionCategory[] = [
   "sprint_pole",
   "sprint_p1",
-  "sprint_p2",
-  "sprint_p3",
-  "sprint_p10",
 ];

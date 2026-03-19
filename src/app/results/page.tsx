@@ -114,7 +114,7 @@ export default async function ResultsPage({ searchParams }: { searchParams: Prom
     ];
   });
 
-  const sprintHeaders = ["User", "Spr P1", "Spr P2", "Spr P3", "Spr P10", "Points"];
+  const sprintHeaders = ["User", "Spr Pole", "Spr P1", "Points"];
   const sprintRows = (predictions ?? [])
     .map((p) => {
       if (!isSprintWeekend) return null;
@@ -122,14 +122,12 @@ export default async function ResultsPage({ searchParams }: { searchParams: Prom
       const name = nameMap.get(uid) ?? uid;
       const s = scoresMap.get(uid);
       const sprintPoints = s
-        ? (s.sprint_pole_points ?? 0) + (s.sprint_p1_points ?? 0) + (s.sprint_p2_points ?? 0) + (s.sprint_p3_points ?? 0) + (s.sprint_p10_points ?? 0)
+        ? (s.sprint_pole_points ?? 0) + (s.sprint_p1_points ?? 0)
         : 0;
       return [
         <span key="name" className="font-medium" style={{ fontFamily: 'var(--font-titillium)' }}>{name}</span>,
+        <span key="spole" style={{ fontFamily: 'var(--font-titillium)' }}>{check(p.sprint_pole_driver_id, actualPole)}</span>,
         <span key="sp1" style={{ fontFamily: 'var(--font-titillium)' }}>{check(p.sprint_p1_driver_id, sprintTop3[0])}</span>,
-        <span key="sp2" style={{ fontFamily: 'var(--font-titillium)' }}>{check(p.sprint_p2_driver_id, sprintTop3[1])}</span>,
-        <span key="sp3" style={{ fontFamily: 'var(--font-titillium)' }}>{check(p.sprint_p3_driver_id, sprintTop3[2])}</span>,
-        <span key="sp10" style={{ fontFamily: 'var(--font-titillium)' }}>{check(p.sprint_p10_driver_id, actualSprintP10)}</span>,
         <span key="pts" className="font-semibold" style={{ fontFamily: 'var(--font-titillium)' }}>{sprintPoints}</span>,
       ];
     })

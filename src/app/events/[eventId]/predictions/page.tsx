@@ -76,7 +76,7 @@ export default async function Page({
 
   const headers = ["User", "Pole", "P1", "P2", "P3", "P10"];
   if (event.is_sprint) {
-    headers.push("Sprint Pole", "Spr P1", "Spr P2", "Spr P3", "Spr P10");
+    headers.push("Sprint Pole", "Spr P1");
   }
 
   const rows: Array<Array<React.ReactNode>> = [];
@@ -103,9 +103,6 @@ export default async function Page({
       row.push(
         driverCode(pred.sprint_pole_driver_id, driversMap),
         driverCode(pred.sprint_p1_driver_id, driversMap),
-        driverCode(pred.sprint_p2_driver_id, driversMap),
-        driverCode(pred.sprint_p3_driver_id, driversMap),
-        driverCode(pred.sprint_p10_driver_id, driversMap),
       );
     }
 
