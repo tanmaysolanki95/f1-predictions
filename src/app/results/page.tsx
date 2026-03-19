@@ -1,8 +1,11 @@
 import { createClient } from "@/lib/supabase/server";
-import DataTable from "@/components/DataTable";
 import Card from "@/components/Card";
+import NavigableSelect from "@/components/NavigableSelect";
+import { Suspense } from "react";
+import ResultsTabs from "@/components/ResultsTabs";
 
-export default async function ResultsPage() {
+export default async function ResultsPage({ searchParams }: { searchParams: Promise<{ event?: string }> }) {
+  const { event } = (await searchParams) as { event?: string };
   const supabase = await createClient();
 
   const { data: completedEvents } = await supabase
@@ -10,96 +13,12 @@ export default async function ResultsPage() {
     .select("id, round, name, date, is_sprint")
     .eq("season_year", 2026)
     .lte("date", new Date().toISOString())
-    .order("date", { ascending: false })
-    .limit(1);
+    .order("date", { ascending: false });
 
-  const latestEvent = completedEvents?.[0] ?? null;
-
-  if (!latestEvent) {
+  if (!completedEvents || completedEvents.length === 0) {
     return (
       <main className="p-6 text-[var(--muted)] animate-fade-in">
-        <Card title="Latest Results">
-          <p className="text-white/70">No results available yet.</p>
-        </Card>
-      </main>
-    );
-  }
-
-  const eventId = latestEvent.id;
-  const isSprint = !!latestEvent.is_sprint;
-
-  const [poleResult, raceTopResult, raceP10Result, sprintTopResult, sprintP10Result, predictionsResult, scoresResult] =
-    await Promise.all([
-      supabase
-        .from("session_results")
-        .select("driver_id")
-        .eq("event_id", eventId)
-        .eq("session_type", "qualifying")
-        .order("position", { ascending: true })
-        .limit(1),
-      supabase
-        .from("session_results")
-        .select("driver_id, position")
-        .eq("event_id", eventId)
-        .eq("session_type", "race")
-        .order("position", { ascending: true })
-        .limit(10),
-      supabase
-        .from("session_results")
-        .select("driver_id")
-        .eq("event_id", eventId)
-        .eq("session_type", "race")
-        .eq("position", 10)
-        .limit(1),
-      isSprint
-        ? supabase
-            .from("session_results")
-            .select("driver_id, position")
-            .eq("event_id", eventId)
-            .eq("session_type", "sprint")
-            .order("position", { ascending: true })
-            .limit(10)
-        : Promise.resolve({ data: null }),
-      isSprint
-        ? supabase
-            .from("session_results")
-            .select("driver_id")
-            .eq("event_id", eventId)
-            .eq("session_type", "sprint")
-            .eq("position", 10)
-            .limit(1)
-        : Promise.resolve({ data: null }),
-      supabase
-        .from("predictions")
-        .select("*")
-        .eq("event_id", eventId),
-      supabase
-        .from("scores")
-        .select("user_id, total_points")
-        .eq("event_id", eventId),
-    ]);
-
-  const actualPole = poleResult.data?.[0]?.driver_id;
-  const raceTop3 = (raceTopResult.data ?? [])
-    .filter((r) => r.position <= 3)
-    .map((r) => r.driver_id);
-  const actualRaceP10 = raceP10Result.data?.[0]?.driver_id;
-  const sprintTop3 = (sprintTopResult.data ?? [])
-    .filter((r) => r.position <= 3)
-    .map((r) => r.driver_id);
-  const actualSprintP10 = sprintP10Result.data?.[0]?.driver_id;
-
-  const predictions = predictionsResult.data ?? [];
-  const scoresMap = new Map(
-    (scoresResult.data ?? []).map((s) => [s.user_id, s.total_points])
-  );
-
-  if (predictions.length === 0) {
-    return (
-      <main className="p-6 text-[var(--muted)] animate-fade-in">
-        <h2 className="text-2xl font-bold mb-4" style={{ fontFamily: 'var(--font-titillium)' }}>
-          Results — Round {latestEvent.round}: {latestEvent.name}
-        </h2>
+        <h2 className="text-2xl font-bold" style={{ fontFamily: 'var(--font-titillium)' }}>Results</h2>
         <Card>
           <p className="text-white/70">No results available yet.</p>
         </Card>
@@ -107,62 +26,152 @@ export default async function ResultsPage() {
     );
   }
 
-  const userIds = predictions.map((p) => p.user_id);
+  const latestEvent = completedEvents[0];
+  const selectedEventId = event ?? (latestEvent?.id ?? null);
+  const eventInfo = completedEvents.find((ev) => ev.id === Number(selectedEventId)) ?? latestEvent;
+  const isSprintWeekend = !!eventInfo?.is_sprint;
+
+  if (!selectedEventId) {
+    return (
+      <main className="p-6 text-[var(--muted)] animate-fade-in">
+        <h2 className="text-2xl font-bold" style={{ fontFamily: 'var(--font-titillium)' }}>Results</h2>
+        <Card>
+          <p className="text-white/70">No event selected.</p>
+        </Card>
+      </main>
+    );
+  }
+
+  const eventId = Number(selectedEventId);
+
+  const poleRes = await supabase
+    .from("session_results")
+    .select("driver_id")
+    .eq("event_id", eventId)
+    .eq("session_type", "qualifying")
+    .order("position", { ascending: true })
+    .limit(1);
+  const actualPole = poleRes.data?.[0]?.driver_id;
+
+  const raceTopRes = await supabase
+    .from("session_results")
+    .select("driver_id, position")
+    .eq("event_id", eventId)
+    .eq("session_type", "race")
+    .order("position", { ascending: true })
+    .limit(10);
+  const raceTop3 = (raceTopRes.data ?? [])
+    .filter((r) => r.position <= 3)
+    .map((r) => r.driver_id);
+  const actualRaceP10 = raceTopRes.data?.find((r) => r.position === 10)?.driver_id;
+
+  let sprintTop3: string[] = [];
+  let actualSprintP10: string | undefined;
+  if (isSprintWeekend) {
+    const sprintTopRes = await supabase
+      .from("session_results")
+      .select("driver_id, position")
+      .eq("event_id", eventId)
+      .eq("session_type", "sprint")
+      .order("position", { ascending: true })
+      .limit(10);
+    sprintTop3 = (sprintTopRes.data ?? [])
+      .filter((r) => r.position <= 3)
+      .map((r) => r.driver_id);
+    const sprintP10Res = await supabase
+      .from("session_results")
+      .select("driver_id")
+      .eq("event_id", eventId)
+      .eq("session_type", "sprint")
+      .eq("position", 10)
+      .limit(1);
+    actualSprintP10 = sprintP10Res.data?.[0]?.driver_id;
+  }
+
+  const { data: predictions } = await supabase.from("predictions").select("*").eq("event_id", eventId);
+  const userIds = (predictions ?? []).map((p) => p.user_id);
   const { data: userNames } = await supabase
     .from("leaderboard")
     .select("user_id, display_name")
     .in("user_id", userIds);
+  const nameMap = new Map((userNames ?? []).map((u) => [u.user_id, u.display_name]));
 
-  const nameMap = new Map(
-    (userNames ?? []).map((u) => [u.user_id, u.display_name])
-  );
+  const { data: scoresData } = await supabase
+    .from("scores")
+    .select(
+      "user_id, race_pole_points, race_p1_points, race_p2_points, race_p3_points, race_p10_points, sprint_pole_points, sprint_p1_points, sprint_p2_points, sprint_p3_points, sprint_p10_points"
+    )
+    .eq("event_id", eventId);
+  const scoresMap = new Map<string, any>();
+  (scoresData ?? []).forEach((s) => scoresMap.set(s.user_id, s));
 
-  const check = (predicted: string | null, actual: string | undefined) =>
-    actual && predicted === actual ? "✅" : "❌";
+  const check = (predicted: string | null | undefined, actual?: string) =>
+    actual && predicted === actual ? "✅" : "✗";
 
-  const baseHeaders = ["User", "Pole", "P1", "P2", "P3", "P10"];
-  const sprintHeaders = isSprint
-    ? ["Spr P1", "Spr P2", "Spr P3", "Spr P10"]
-    : [];
-  const headers = [...baseHeaders, ...sprintHeaders, "Points"];
-
-  const rows = predictions.map((p) => {
-    const name = nameMap.get(p.user_id) ?? p.user_id;
-    const points = scoresMap.get(p.user_id) ?? 0;
-
-    const baseCells = [
-      <span key="name" className="font-medium">{name}</span>,
-      check(p.race_pole_driver_id, actualPole),
-      check(p.race_p1_driver_id, raceTop3[0]),
-      check(p.race_p2_driver_id, raceTop3[1]),
-      check(p.race_p3_driver_id, raceTop3[2]),
-      check(p.race_p10_driver_id, actualRaceP10),
-    ];
-
-    const sprintCells = isSprint
-      ? [
-          check(p.sprint_p1_driver_id, sprintTop3[0]),
-          check(p.sprint_p2_driver_id, sprintTop3[1]),
-          check(p.sprint_p3_driver_id, sprintTop3[2]),
-          check(p.sprint_p10_driver_id, actualSprintP10),
-        ]
-      : [];
-
+  const raceHeaders = ["User", "Pole", "P1", "P2", "P3", "P10", "Points"];
+  const raceRows = (predictions ?? []).map((p) => {
+    const uid = p.user_id;
+    const name = nameMap.get(uid) ?? uid;
+    const s = scoresMap.get(uid);
+    const racePoints = s
+      ? (s.race_pole_points ?? 0) + (s.race_p1_points ?? 0) + (s.race_p2_points ?? 0) + (s.race_p3_points ?? 0) + (s.race_p10_points ?? 0)
+      : 0;
     return [
-      ...baseCells,
-      ...sprintCells,
-      <span key="pts" className="font-semibold text-[var(--f1-red)]">{points}</span>,
+      <span key="name" className="font-medium" style={{ fontFamily: 'var(--font-titillium)' }}>{name}</span>,
+      <span key="pole" style={{ fontFamily: 'var(--font-titillium)' }}>{check(p.race_pole_driver_id, actualPole)}</span>,
+      <span key="p1" style={{ fontFamily: 'var(--font-titillium)' }}>{check(p.race_p1_driver_id, raceTop3[0])}</span>,
+      <span key="p2" style={{ fontFamily: 'var(--font-titillium)' }}>{check(p.race_p2_driver_id, raceTop3[1])}</span>,
+      <span key="p3" style={{ fontFamily: 'var(--font-titillium)' }}>{check(p.race_p3_driver_id, raceTop3[2])}</span>,
+      <span key="p10" style={{ fontFamily: 'var(--font-titillium)' }}>{check(p.race_p10_driver_id, actualRaceP10)}</span>,
+      <span key="pts" className="font-semibold" style={{ fontFamily: 'var(--font-titillium)' }}>{racePoints}</span>,
     ];
   });
 
+  const sprintHeaders = ["User", "Spr P1", "Spr P2", "Spr P3", "Spr P10", "Points"];
+  const sprintRows = (predictions ?? [])
+    .map((p) => {
+      if (!isSprintWeekend) return null;
+      const uid = p.user_id;
+      const name = nameMap.get(uid) ?? uid;
+      const s = scoresMap.get(uid);
+      const sprintPoints = s
+        ? (s.sprint_pole_points ?? 0) + (s.sprint_p1_points ?? 0) + (s.sprint_p2_points ?? 0) + (s.sprint_p3_points ?? 0) + (s.sprint_p10_points ?? 0)
+        : 0;
+      return [
+        <span key="name" className="font-medium" style={{ fontFamily: 'var(--font-titillium)' }}>{name}</span>,
+        <span key="sp1" style={{ fontFamily: 'var(--font-titillium)' }}>{check(p.sprint_p1_driver_id, sprintTop3[0])}</span>,
+        <span key="sp2" style={{ fontFamily: 'var(--font-titillium)' }}>{check(p.sprint_p2_driver_id, sprintTop3[1])}</span>,
+        <span key="sp3" style={{ fontFamily: 'var(--font-titillium)' }}>{check(p.sprint_p3_driver_id, sprintTop3[2])}</span>,
+        <span key="sp10" style={{ fontFamily: 'var(--font-titillium)' }}>{check(p.sprint_p10_driver_id, actualSprintP10)}</span>,
+        <span key="pts" className="font-semibold" style={{ fontFamily: 'var(--font-titillium)' }}>{sprintPoints}</span>,
+      ];
+    })
+    .filter((r) => r);
+
+  const eventOptions = (completedEvents ?? []).map((ev) => ({ value: String(ev.id), label: `R${ev.round} — ${ev.name}` }));
+  const selectedEventIdStr = String(selectedEventId ?? "");
+
   return (
-    <main className="p-6 text-[var(--muted)] animate-fade-in space-y-4">
-      <h2 className="text-2xl font-bold" style={{ fontFamily: 'var(--font-titillium)' }}>
-        Results — Round {latestEvent.round}: {latestEvent.name}
-      </h2>
-      <Card>
-        <DataTable headers={headers} rows={rows} />
-      </Card>
+    <main className="p-6 space-y-4">
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold" style={{ fontFamily: 'var(--font-titillium)' }}>Results</h1>
+        <Suspense fallback={null}>
+          <NavigableSelect
+            paramName="event"
+            options={eventOptions}
+            value={selectedEventIdStr}
+            className="min-w-[240px]"
+          />
+        </Suspense>
+      </div>
+
+      <ResultsTabs
+        isSprint={isSprintWeekend}
+        raceHeaders={raceHeaders}
+        raceRows={raceRows}
+        sprintHeaders={sprintHeaders}
+        sprintRows={sprintRows as Array<Array<React.ReactNode>>}
+      />
     </main>
   );
 }
