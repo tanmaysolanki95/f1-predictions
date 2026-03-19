@@ -4,12 +4,18 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 
 export async function login(formData: FormData) {
-  const supabase = await createClient();
+  const email = formData.get("email");
+  const password = formData.get("password");
 
-  const { error } = await supabase.auth.signInWithPassword({
-    email: formData.get("email") as string,
-    password: formData.get("password") as string,
-  });
+  if (typeof email !== "string" || !email.trim()) {
+    return { error: "Email is required." };
+  }
+  if (typeof password !== "string" || !password) {
+    return { error: "Password is required." };
+  }
+
+  const supabase = await createClient();
+  const { error } = await supabase.auth.signInWithPassword({ email, password });
 
   if (error) {
     return { error: error.message };
@@ -19,16 +25,25 @@ export async function login(formData: FormData) {
 }
 
 export async function signup(formData: FormData) {
-  const supabase = await createClient();
+  const email = formData.get("email");
+  const password = formData.get("password");
+  const displayName = formData.get("displayName");
 
+  if (typeof email !== "string" || !email.trim()) {
+    return { error: "Email is required." };
+  }
+  if (typeof password !== "string" || password.length < 6) {
+    return { error: "Password must be at least 6 characters." };
+  }
+  if (typeof displayName !== "string" || !displayName.trim()) {
+    return { error: "Display name is required." };
+  }
+
+  const supabase = await createClient();
   const { error } = await supabase.auth.signUp({
-    email: formData.get("email") as string,
-    password: formData.get("password") as string,
-    options: {
-      data: {
-        display_name: formData.get("displayName") as string,
-      },
-    },
+    email,
+    password,
+    options: { data: { display_name: displayName.trim() } },
   });
 
   if (error) {
@@ -45,8 +60,12 @@ export async function logout() {
 }
 
 export async function resetPassword(formData: FormData) {
+  const email = formData.get("email");
+  if (typeof email !== "string" || !email.trim()) {
+    return { error: "Email is required." };
+  }
+
   const supabase = await createClient();
-  const email = formData.get("email") as string;
   const { error } = await supabase.auth.resetPasswordForEmail(email, {
     redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"}/auth/callback?next=/auth/reset-password`,
   });
@@ -55,8 +74,12 @@ export async function resetPassword(formData: FormData) {
 }
 
 export async function updatePassword(formData: FormData) {
+  const password = formData.get("password");
+  if (typeof password !== "string" || password.length < 6) {
+    return { error: "Password must be at least 6 characters." };
+  }
+
   const supabase = await createClient();
-  const password = formData.get("password") as string;
   const { error } = await supabase.auth.updateUser({ password });
   if (error) return { error: error.message };
   redirect("/");
