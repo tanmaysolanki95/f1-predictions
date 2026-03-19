@@ -105,12 +105,13 @@ export default function PredictionForm({ event, drivers, existingPrediction, isL
     const selectedId = values[cat];
     const driver = drivers.find((d) => d.id === selectedId) ?? null;
     return (
-      <div key={cat} className="flex items-center gap-4 w-full">
-        <span className="w-48 shrink-0 text-sm text-gray-300" style={{ fontFamily: 'var(--font-titillium)' }}>{PREDICTION_LABELS[cat]}</span>
+      <div key={cat} className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4 w-full">
+        <span className="text-xs sm:text-sm sm:w-48 sm:shrink-0 text-gray-300" style={{ fontFamily: 'var(--font-titillium)' }}>{PREDICTION_LABELS[cat]}</span>
         <div className="flex-1">
           {driver ? (
             <DriverCard
               driver={driver}
+              compact
               className={`w-full ${locked ? "opacity-75" : ""}`}
               onClick={locked ? undefined : () => setPickerCat(cat)}
               selected={!locked && driver?.id === selectedId}
@@ -118,13 +119,13 @@ export default function PredictionForm({ event, drivers, existingPrediction, isL
           ) : (
             <div
               onClick={locked ? undefined : () => setPickerCat(cat)}
-              className={`min-h-[72px] border-2 border-dashed rounded-[var(--radius-md)] flex items-center justify-center text-sm transition-colors ${
+              className={`min-h-[52px] border-2 border-dashed rounded-[var(--radius-md)] flex items-center justify-center text-xs sm:text-sm transition-colors ${
                 locked
                   ? "border-[var(--border)] text-white/30 cursor-default"
                   : "border-[var(--glass-border)] text-white/60 cursor-pointer racing-stripe-bg hover:bg-white/5"
               }`}
             >
-              {locked ? "No prediction made" : `Tap to select ${PREDICTION_LABELS[cat]}`}
+              {locked ? "No prediction made" : `Tap to select`}
             </div>
           )}
         </div>

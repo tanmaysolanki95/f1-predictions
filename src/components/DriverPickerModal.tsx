@@ -54,15 +54,15 @@ export default function DriverPickerModal({
       aria-label={title}
       role="dialog"
       className="fixed inset-0 z-50"
-      onClick={onClose}
     >
       <div
         className="absolute inset-0 bg-black/70 backdrop-blur-sm"
-        onClick={(e) => e.stopPropagation()}
+        onClick={onClose}
       />
       <div
         className="relative w-full h-full md:h-auto mx-0 md:mx-6 md:my-6 animate-slide-up"
         style={{ maxWidth: "none" }}
+        onClick={(e) => e.stopPropagation()}
       >
         <div className="absolute inset-0 md:inset-auto md:mx-auto md:w-full md:max-w-2xl mx-4 my-6 bg-[var(--surface)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] shadow-[var(--shadow-md)] overflow-hidden md:overflow-visible">
           <header className="flex items-center justify-between px-4 py-3 border-b border-[var(--glass-border)] bg-[var(--surface-elevated)]">
@@ -89,11 +89,12 @@ export default function DriverPickerModal({
               className="w-full bg-[var(--surface)] border border-[var(--glass-border)] rounded px-3 py-2 text-white placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-[var(--f1-red)]"
             />
           </div>
-          <div className="p-4 grid grid-cols-2 sm:grid-cols-3 gap-3 overflow-y-auto max-h-[60vh] md:max-h-[70vh]">
+          <div className="p-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 overflow-y-auto max-h-[60vh] md:max-h-[70vh]">
             {filtered.map((d) => (
               <DriverCard
                 key={d.id}
                 driver={d}
+                compact
                 onClick={() => onSelect(d.id)}
                 selected={selectedId === d.id}
                 className="w-full"
