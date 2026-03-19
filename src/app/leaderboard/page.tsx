@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import Link from "next/link";
 import DataTable from "@/components/DataTable";
 import Card from "@/components/Card";
 
@@ -41,7 +42,7 @@ export default async function LeaderboardPage() {
         className={isCurrentUser ? "font-bold text-[var(--f1-red)]" : ""}
         style={{ fontFamily: 'var(--font-titillium)' }}
       >
-        {entry.display_name}
+        <Link href={`/profile/${entry.user_id}`} className={"hover:underline"}>{entry.display_name}</Link>
         {isCurrentUser ? " (you)" : ""}
       </span>,
       <span

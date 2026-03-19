@@ -16,11 +16,13 @@ export default function Nav() {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [user, setUser] = useState<string | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
 
   useEffect(() => {
     const supabase = createClient();
     supabase.auth.getUser().then(({ data: { user: u } }) => {
       setUser(u?.user_metadata?.display_name ?? u?.email ?? null);
+      setUserId(u?.id ?? null);
     });
   }, [pathname]);
 
@@ -85,6 +87,11 @@ export default function Nav() {
                 Change password
               </Link>
             )}
+            {userId && (
+              <Link href={`/profile/${userId}`} className="hidden md:block text-xs text-white/40 hover:text-white/70 transition-colors border-l border-[var(--glass-border)] ml-2 pl-3 py-1">
+                My Profile
+              </Link>
+            )}
             <button
               className="md:hidden p-2 rounded-md text-white/70 hover:bg-white/10 focus:outline-none"
               aria-label="Toggle menu"
@@ -121,6 +128,11 @@ export default function Nav() {
           {user && (
             <Link href="/auth/change-password" onClick={() => setOpen(false)} className="block w-full px-4 py-2 text-sm text-white/40 hover:text-white/70">
               Change password
+            </Link>
+          )}
+          {userId && (
+            <Link href={`/profile/${userId}`} onClick={() => setOpen(false)} className="block w-full px-4 py-2 text-sm text-white/40 hover:text-white/70">
+              My Profile
             </Link>
           )}
         </div>

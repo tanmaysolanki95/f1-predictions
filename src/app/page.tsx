@@ -30,7 +30,7 @@ export default async function DashboardPage() {
 
   const { data: leaders } = await supabase
     .from("leaderboard")
-    .select("display_name, total_points")
+    .select("user_id, display_name, total_points")
     .order("total_points", { ascending: false })
     .limit(5);
 
@@ -121,7 +121,7 @@ export default async function DashboardPage() {
                     <span className="w-6 text-center" style={{ fontFamily: 'var(--font-titillium)' }}>
                       {i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i + 1}.`}
                     </span>
-                    <span style={{ fontFamily: 'var(--font-titillium)' }}>{entry.display_name}</span>
+                    <Link href={`/profile/${entry.user_id}`} className="hover:underline" style={{ fontFamily: 'var(--font-titillium)' }}>{entry.display_name}</Link>
                   </span>
                   <span className="text-sm font-mono text-[var(--muted)]">
                     {entry.total_points} pts

@@ -1,4 +1,5 @@
 import Card from "@/components/Card";
+import Link from "next/link";
 import Badge from "@/components/Badge";
 import Button from "@/components/Button";
 import DataTable from "@/components/DataTable";
@@ -69,10 +70,10 @@ export default async function Page({
     const displayName = profilesMap.get(pred.user_id) ?? pred.user_id;
     const isCurrentUser = user?.id === pred.user_id;
 
-    const userCell = (
-      <span className={isCurrentUser ? "font-bold text-[var(--f1-red)]" : ""}>
+  const userCell = (
+      <Link href={`/profile/${pred.user_id}`} className={`hover:underline ${isCurrentUser ? "font-bold text-[var(--f1-red)]" : ""}`}>
         {displayName}
-      </span>
+      </Link>
     );
 
     const row: Array<React.ReactNode> = [
