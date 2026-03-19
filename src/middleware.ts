@@ -32,17 +32,17 @@ export async function middleware(req: NextRequest) {
     },
   );
 
-  const { data: { user } } = await supabase.auth.getUser();
+  const { data: { session } } = await supabase.auth.getSession();
   const { pathname } = req.nextUrl;
   const isAuthRoute = pathname.startsWith("/auth");
 
-  if (!user && !isAuthRoute) {
+  if (!session && !isAuthRoute) {
     const url = req.nextUrl.clone();
     url.pathname = "/auth/login";
     return NextResponse.redirect(url);
   }
 
-  if (user && (pathname === "/auth/login" || pathname === "/auth/signup" || pathname === "/auth/forgot-password")) {
+  if (session && (pathname === "/auth/login" || pathname === "/auth/signup" || pathname === "/auth/forgot-password")) {
     const url = req.nextUrl.clone();
     url.pathname = "/";
     return NextResponse.redirect(url);

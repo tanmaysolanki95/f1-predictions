@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono, Titillium_Web } from "next/font/google";
+import { createClient } from "@/lib/supabase/server";
 import Nav from "@/components/Nav";
 import "./globals.css";
 
@@ -30,18 +31,24 @@ export const metadata: Metadata = {
   description: "Track F1 predictions with your friends",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
   return (
     <html
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} ${titillium.variable} dark h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-[var(--bg)] text-[var(--text)] safe-bottom">
-        <Nav />
+        <Nav
+          displayName={user?.user_metadata?.display_name ?? user?.email ?? null}
+          userId={user?.id ?? null}
+        />
         <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
           {children}
         </main>

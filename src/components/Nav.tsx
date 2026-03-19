@@ -11,20 +11,16 @@ const LINKS = [
   { href: "/leaderboard", label: "Leaderboard" },
 ];
 
-export default function Nav() {
+export default function Nav({
+  displayName,
+  userId,
+}: {
+  displayName: string | null;
+  userId: string | null;
+}) {
   const pathname = usePathname();
   const router = useRouter();
   const [open, setOpen] = useState(false);
-  const [user, setUser] = useState<string | null>(null);
-  const [userId, setUserId] = useState<string | null>(null);
-
-  useEffect(() => {
-    const supabase = createClient();
-    supabase.auth.getUser().then(({ data: { user: u } }) => {
-      setUser(u?.user_metadata?.display_name ?? u?.email ?? null);
-      setUserId(u?.id ?? null);
-    });
-  }, [pathname]);
 
   useEffect(() => {
     if (open) {
@@ -77,13 +73,13 @@ export default function Nav() {
             </nav>
           </div>
           <div className="flex items-center gap-3">
-            {user && (
+            {displayName && (
               <span className="hidden md:flex items-center gap-2 text-sm text-white/70 border-l border-[var(--glass-border)] pl-3 pr-3 py-1">
                 <span className="w-2 h-2 rounded-full bg-emerald-400" />
-                {user}
+                {displayName}
               </span>
             )}
-            {user && (
+            {displayName && (
               <button
                 onClick={handleLogout}
                 className="hidden md:block text-xs text-white/40 hover:text-white/70 transition-colors border-l border-[var(--glass-border)] ml-2 pl-3 py-1"
@@ -91,7 +87,7 @@ export default function Nav() {
                 Sign out
               </button>
             )}
-            {user && (
+            {displayName && (
               <Link href="/auth/change-password" className="hidden md:block text-xs text-white/40 hover:text-white/70 transition-colors border-l border-[var(--glass-border)] ml-2 pl-3 py-1">
                 Change password
               </Link>
@@ -126,7 +122,7 @@ export default function Nav() {
               {l.label}
             </Link>
           ))}
-          {user && (
+          {displayName && (
             <button
               onClick={handleLogout}
               className="block w-full text-left px-4 py-2 text-sm text-white/40 hover:text-white/70"
@@ -134,7 +130,7 @@ export default function Nav() {
               Sign out
             </button>
           )}
-          {user && (
+          {displayName && (
             <Link href="/auth/change-password" onClick={() => setOpen(false)} className="block w-full px-4 py-2 text-sm text-white/40 hover:text-white/70">
               Change password
             </Link>
