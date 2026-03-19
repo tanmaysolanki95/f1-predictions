@@ -27,12 +27,13 @@ function extractEnclosureUrl(itemXml: string): string | null {
 }
 
 function stripHtml(html: string): string {
-  return html
-    .replace(/<a[^>]*class=['"]more['"][^>]*>.*?<\/a>/gi, "")
-    .replace(/<br\s*\/?>/gi, " ")
-    .replace(/<[^>]+>/g, "")
-    .replace(/\s+/g, " ")
-    .trim();
+  let result = html.replace(/<br\s*\/?>/gi, " ");
+  let prev;
+  do {
+    prev = result;
+    result = result.replace(/<[^>]*>/g, "");
+  } while (result !== prev);
+  return result.replace(/\s+/g, " ").trim();
 }
 
 function parseItems(xml: string): NewsItem[] {
