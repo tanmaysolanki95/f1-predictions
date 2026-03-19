@@ -28,7 +28,7 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 const season = process.env.SEASON ?? "current";
 const round = process.env.ROUND ?? "last";
 const seasonNum = season === "current" ? "current" as const : parseInt(season, 10);
-const roundNum = round === "last" ? "last" as const : parseInt(round, 10);
+const roundMode = round === "last" ? "last" as const : round === "all" ? "all" as const : parseInt(round, 10);
 
 async function findEventId(seasonYear: number, roundNum: number): Promise<number | null> {
   const { data } = await supabase
@@ -115,34 +115,26 @@ function findMostRecentCompletedRace(
   return completed.length > 0 ? completed[completed.length - 1] : null;
 }
 
-async function main() {
-  console.log(`Fetching results for season=${season} round=${round}`);
+function findAllCompletedRaces(calendar: JolpicaRaceSchedule[]): JolpicaRaceSchedule[] {
+  const now = Date.now();
+  return calendar.filter((race) => {
+    const raceStart = race.time
+      ? new Date(`${race.date}T${race.time}`).getTime()
+      : new Date(`${race.date}T00:00:00Z`).getTime();
+    return raceStart + COMPLETION_BUFFER_MS <= now;
+  });
+}
 
-  const calendar = await getSeasonCalendar(seasonNum);
+async function processRace(race: JolpicaRaceSchedule) {
+  const actualSeason = parseInt(race.season, 10);
+  const actualRound = parseInt(race.round, 10);
 
-  const targetRace =
-    roundNum === "last"
-      ? findMostRecentCompletedRace(calendar)
-      : calendar.find((r) => r.round === String(roundNum));
-
-  if (!targetRace) {
-    console.error(
-      roundNum === "last"
-        ? "No completed race found yet (race start + 6h buffer not elapsed)"
-        : `Round ${round} not found in ${season} calendar`,
-    );
-    process.exit(1);
-  }
-
-  const actualSeason = parseInt(targetRace.season, 10);
-  const actualRound = parseInt(targetRace.round, 10);
-
-  console.log(`Target: ${targetRace.raceName} (Round ${actualRound}, ${actualSeason})`);
+  console.log(`\n=== ${race.raceName} (Round ${actualRound}, ${actualSeason}) ===`);
 
   const eventId = await findEventId(actualSeason, actualRound);
   if (!eventId) {
-    console.error("Event not found in database — run calendar sync first");
-    process.exit(1);
+    console.log("Event not found in database — skipping");
+    return;
   }
 
   const qualResults = await getQualifyingResults(actualSeason, actualRound);
@@ -153,13 +145,54 @@ async function main() {
   console.log(`Fetched ${raceResults.length} race results`);
   await upsertResults(mapRaceResults(eventId, raceResults));
 
-  if (isSprintWeekend(targetRace)) {
+  if (isSprintWeekend(race)) {
     const sprintResults = await getSprintResults(actualSeason, actualRound);
     console.log(`Fetched ${sprintResults.length} sprint results`);
     await upsertResults(mapSprintResults(eventId, sprintResults));
   }
 
   await scoreEvent(eventId);
+}
+
+const BACKFILL_DELAY_MS = 2000;
+
+async function main() {
+  console.log(`Fetching results for season=${season} round=${round}`);
+
+  const calendar = await getSeasonCalendar(seasonNum);
+
+  if (roundMode === "all") {
+    const completed = findAllCompletedRaces(calendar);
+    if (completed.length === 0) {
+      console.log("No completed races found for this season");
+      process.exit(0);
+    }
+    console.log(`Backfilling ${completed.length} completed race(s)...`);
+    for (let i = 0; i < completed.length; i++) {
+      await processRace(completed[i]);
+      if (i < completed.length - 1) {
+        await new Promise((resolve) => setTimeout(resolve, BACKFILL_DELAY_MS));
+      }
+    }
+    console.log(`\nBackfill complete — processed ${completed.length} races`);
+    return;
+  }
+
+  const targetRace =
+    roundMode === "last"
+      ? findMostRecentCompletedRace(calendar)
+      : calendar.find((r) => r.round === String(roundMode));
+
+  if (!targetRace) {
+    console.error(
+      roundMode === "last"
+        ? "No completed race found yet (race start + 6h buffer not elapsed)"
+        : `Round ${round} not found in ${season} calendar`,
+    );
+    process.exit(1);
+  }
+
+  await processRace(targetRace);
   console.log("Done!");
 }
 

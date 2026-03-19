@@ -13,7 +13,7 @@ on:
         required: false
         default: "current"
       round:
-        description: "Round number (default: most recent completed race)"
+        description: "Round number, 'last' for most recent, or 'all' to backfill the season"
         required: false
         default: "last"
 
