@@ -1,7 +1,8 @@
 "use client";
 
-import React from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
   variant?: "primary" | "secondary" | "ghost";
@@ -26,6 +27,8 @@ function Spinner() {
   return <span className="btn-spinner" aria-hidden />;
 }
 
+const NAV_TIMEOUT_MS = 8000;
+
 export default function Button({
   variant = "primary",
   size = "md",
@@ -37,7 +40,23 @@ export default function Button({
   type = "button",
   ...rest
 }: ButtonProps) {
-  const isDisabled = disabled || loading;
+  const pathname = usePathname();
+  const [navigating, setNavigating] = useState(false);
+
+  useEffect(() => {
+    setNavigating(false);
+  }, [pathname]);
+
+  useEffect(() => {
+    if (!navigating) return;
+    const timer = setTimeout(() => setNavigating(false), NAV_TIMEOUT_MS);
+    return () => clearTimeout(timer);
+  }, [navigating]);
+
+  const isLink = !!href;
+  const showSpinner = isLink ? navigating || loading : loading;
+  const isDisabled = disabled || showSpinner;
+
   const classes = [
     "btn",
     VARIANT_CLASSES[variant],
@@ -50,7 +69,7 @@ export default function Button({
 
   const content = (
     <>
-      {loading && <Spinner />}
+      {showSpinner && <Spinner />}
       {children}
     </>
   );
@@ -62,6 +81,13 @@ export default function Button({
         className={classes}
         aria-disabled={isDisabled || undefined}
         tabIndex={isDisabled ? -1 : undefined}
+        onClick={(e) => {
+          if (isDisabled) {
+            e.preventDefault();
+            return;
+          }
+          setNavigating(true);
+        }}
       >
         {content}
       </Link>
