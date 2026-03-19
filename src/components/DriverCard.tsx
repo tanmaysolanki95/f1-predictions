@@ -2,6 +2,7 @@
 
 import type { Driver } from "@/types/database";
 import { teamColorHex } from "@/lib/teamColors";
+import { getTeamLogoUrl } from "@/lib/teamLogos";
 
 export default function DriverCard({
   driver,
@@ -80,6 +81,17 @@ export default function DriverCard({
         </p>
         {!compact && (
           <div className="flex items-center gap-1.5 mt-0.5">
+            {(() => {
+              const logoUrl = driver.team ? getTeamLogoUrl(driver.team) : null;
+              return logoUrl ? (
+                <img
+                  src={logoUrl}
+                  alt=""
+                  className="w-4 h-4 rounded-full bg-white object-contain flex-none"
+                  onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                />
+              ) : null;
+            })()}
             <span
               className="w-2 h-2 rounded-full inline-block flex-none"
               style={{ backgroundColor: color }}
