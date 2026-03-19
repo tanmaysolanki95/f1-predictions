@@ -11,7 +11,7 @@ export default async function EventsPage() {
   const { data: events, error } = await supabase
     .from("events")
     .select(
-      "id, round, name, date, time, country, circuit_name, is_sprint, predictions_locked"
+      "id, round, name, date, time, country, circuit_name, circuit_id, is_sprint, predictions_locked"
     )
     .eq("season_year", 2026)
     .order("round", { ascending: true });
@@ -26,6 +26,7 @@ export default async function EventsPage() {
 
   const now = new Date();
   const today = now.toISOString().split("T")[0];
+  let nextAssigned = false;
 
   return (
     <main className="p-6 text-[var(--muted)] animate-fade-in">
@@ -34,6 +35,8 @@ export default async function EventsPage() {
           {(events ?? []).map((ev) => {
             const eventDate = new Date(ev.date);
             const isPast = eventDate < now;
+            const isNext = !nextAssigned && ev.date >= today;
+            if (isNext) nextAssigned = true;
             const hasBegun = ev.date <= today;
             const isLocked = ev.predictions_locked || hasBegun;
             const formattedDate = eventDate.toLocaleDateString("en-US", {
@@ -73,6 +76,8 @@ export default async function EventsPage() {
                     countryFlag={ev.country}
                     sprint={!!ev.is_sprint}
                     round={ev.round}
+                    isPast={isPast}
+                    isNext={isNext}
                   />
                 </Link>
                 <div className="px-4 pb-3 flex items-center gap-2">
