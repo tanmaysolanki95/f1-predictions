@@ -46,29 +46,21 @@ export default async function EventsPage() {
             });
 
             const statusBadge = isPast ? (
-              <Link
-                href={`/results?event=${ev.id}`}
-                className="inline-block mt-2"
-              >
-                <Badge label="Completed" tone="points" />
-              </Link>
+              <Badge label="Completed" tone="points" />
             ) : hasBegun ? (
-              <span className="inline-block mt-2">
-                <Badge label="Event Started" tone="locked" />
-              </span>
+              <Badge label="Event Started" tone="locked" />
             ) : isLocked ? (
-              <span className="inline-block mt-2">
-                <Badge label="Locked" tone="locked" />
-              </span>
+              <Badge label="Locked" tone="locked" />
             ) : (
-              <span className="inline-block mt-2">
-                <Badge label="Open" tone="open" />
-              </span>
+              <Badge label="Open" tone="open" />
             );
+
+            const predictionsHref = `/events/${ev.id}/predictions?from=/events`;
+            const predictHref = `/events/${ev.id}/predict`;
 
             return (
               <div key={ev.id} className="flex flex-col">
-                <Link href={isLocked ? `/events/${ev.id}/predictions?from=/events` : `/events/${ev.id}/predict`} className="block flex-1">
+                <Link href={isPast || isLocked ? predictionsHref : predictHref} className="block flex-1">
                   <EventCard
                     raceName={ev.name}
                     date={formattedDate}
@@ -82,12 +74,9 @@ export default async function EventsPage() {
                 </Link>
                 <div className="px-4 pb-3 flex items-center gap-2 flex-wrap">
                   {statusBadge}
-                  <Button variant="ghost" href={`/events/${ev.id}/predictions?from=/events`}>
-                    View Picks
-                  </Button>
-                  {isPast && (
-                    <Button variant="ghost" href={`/results?event=${ev.id}`}>
-                      View Results
+                  {!isPast && (
+                    <Button variant="ghost" href={isLocked ? predictionsHref : predictHref}>
+                      View Event
                     </Button>
                   )}
                 </div>

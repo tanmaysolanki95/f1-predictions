@@ -167,9 +167,6 @@ export default async function DashboardPage() {
           <Button href="/leaderboard" variant="secondary" size="md">
             Full Leaderboard
           </Button>
-          <Button href="/results" variant="secondary" size="md">
-            Latest Results
-          </Button>
         </div>
       </Card>
 
