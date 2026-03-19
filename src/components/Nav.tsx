@@ -47,7 +47,31 @@ export default function Nav({
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-14">
           <div className="flex items-center gap-6">
-            <Link href="/" className="text-lg font-bold text-white tracking-tight" style={{ fontFamily: 'var(--font-titillium)' }}>
+            <Link href="/" className="flex items-center gap-2 text-lg font-bold text-white tracking-tight" style={{ fontFamily: 'var(--font-titillium)' }}>
+              <svg viewBox="0 0 512 512" className="w-7 h-7 flex-none" aria-hidden="true">
+                <defs>
+                  <linearGradient id="nav-logo-bg" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0%" stopColor="#e10600"/>
+                    <stop offset="100%" stopColor="#b30500"/>
+                  </linearGradient>
+                  <clipPath id="nav-logo-rr">
+                    <rect width="512" height="512" rx="96"/>
+                  </clipPath>
+                </defs>
+                <g clipPath="url(#nav-logo-rr)">
+                  <rect width="512" height="512" fill="url(#nav-logo-bg)"/>
+                  <g opacity="0.12">
+                    <rect x="384" y="0" width="32" height="32" fill="#fff"/>
+                    <rect x="448" y="0" width="32" height="32" fill="#fff"/>
+                    <rect x="416" y="32" width="32" height="32" fill="#fff"/>
+                    <rect x="480" y="32" width="32" height="32" fill="#fff"/>
+                    <rect x="384" y="64" width="32" height="32" fill="#fff"/>
+                    <rect x="448" y="64" width="32" height="32" fill="#fff"/>
+                  </g>
+                  <rect x="0" y="460" width="512" height="4" fill="#fff" opacity="0.25"/>
+                  <text x="256" y="310" textAnchor="middle" fontFamily="Arial Black,Impact,sans-serif" fontWeight="900" fontSize="300" fill="#fff" letterSpacing="-15">P1</text>
+                </g>
+              </svg>
               F1 Predictions
             </Link>
             <nav className="hidden md:flex items-center gap-1">
