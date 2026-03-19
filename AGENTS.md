@@ -35,7 +35,7 @@ The project supports two env var names for the Supabase key: `NEXT_PUBLIC_SUPABA
 - Racing motif classes: `.racing-stripe-bg`, `.carbon-fiber-bg`, `.checkered-bg`
 - Animation classes: `.animate-fade-in`, `.animate-slide-up`, `.animate-press`, `.animate-pulse-glow`, `.skeleton`
 - Countdown timer classes: `.countdown`, `.countdown-segment`, `.countdown-value`, `.countdown-label`, `.countdown-separator`
-- Circuit background: `.circuit-bg` — absolutely positioned, 7% opacity decorative overlay with mask gradient
+- Circuit background: `.circuit-bg` (15% opacity) and `.circuit-bg--hero` (40% opacity, wider, edge fades) — absolutely positioned decorative overlays with mask gradients
 - Button system: `import Button from "@/components/Button"` — variants: primary/secondary/ghost, sizes: sm/md/lg. Link buttons auto-show a spinner during navigation.
 
 ### F1 Asset Utilities
@@ -54,10 +54,13 @@ All consumers must handle `null` returns gracefully. Use `<FallbackImage>` (clie
 - RLS enforces this server-side (migration 004)
 - Driver IDs follow Jolpica format: `max_verstappen`, `russell`, `leclerc`
 - Prediction categories map to DB columns via `PREDICTION_COLUMN_MAP` in `types/database.ts`
+- Race predictions: pole, P1, P2, P3, P10 (positions P1–P10 must be unique drivers; pole excluded from uniqueness check)
+- Sprint predictions: sprint qualifying pole, sprint P1 only (P2/P3/P10 columns exist in DB but are unused)
 
 ### Auth
 
 - Middleware at `src/middleware.ts` uses `getUser()` to gate access (validates against Supabase server; clears stale `sb-*` cookies on redirect to login)
+- API routes (`/api/*`) are excluded from auth redirect
 - The root layout (`src/app/layout.tsx`) calls `getUser()` once and passes `displayName` + `userId` to `<Nav>` — Nav does NOT make its own auth call
 - Server actions in `src/app/auth/actions.ts` validate inputs (type, length) before calling Supabase: login, signup, logout, resetPassword, updatePassword
 - Password reset flow: forgot-password → email → callback → reset-password
@@ -65,13 +68,14 @@ All consumers must handle `null` returns gracefully. Use `<FallbackImage>` (clie
 
 ### Pages
 
-All dynamic pages use `cookies()` to opt out of static generation. Use `.maybeSingle()` instead of `.single()` for queries that may return 0 rows.
+All dynamic pages use `cookies()` to opt out of static generation. Use `.maybeSingle()` instead of `.single()` for queries that may return 0 rows. Parallelize independent queries with `Promise.all`.
 
-- **Dashboard** (`/`): Live `<RaceCountdown>` targeting `event.date + event.time`, circuit layout as background overlay
-- **Events** (`/events`): Country flag images via `<FallbackImage>`, past events dimmed (`opacity-50 grayscale`), next event highlighted with red glow, "View Results" link on completed events
-- **Results** (`/results`): Event selector via `<NavigableSelect>` (`?event=` search param), Race/Sprint tabs via `<ResultsTabs>`, single bulk `session_results` query
-- **Leaderboard** (`/leaderboard`): Season selector via `<NavigableSelect>` (`?season=` search param), per-season standings computed from scores + events join
-- **Profile** (`/profile/[userId]`): Season tabs, per-event prediction breakdown
+- **Dashboard** (`/`): Live `<RaceCountdown>` targeting `event.date + event.time`, circuit layout as hero background, leaderboard preview, news headlines. Smart CTA: "Make Predictions" / "View Predictions" + "Edit Picks" based on existing prediction. 5 queries parallelized.
+- **Events** (`/events`): Country flag images via `<FallbackImage>`, past events dimmed (`opacity-50 grayscale`), next event highlighted with red glow. Completed events link to predictions (combined results view), upcoming link to predict form.
+- **Predictions** (`/events/[eventId]/predictions`): Combined picks + results view. Hero card with circuit image + flag. For completed events: Actual Results summary card, correct/incorrect pick highlighting (emerald ✓ / dimmed ✗), points column. Context-aware back button via `?from=` param. 7 queries parallelized.
+- **Leaderboard** (`/leaderboard`): Season selector via `<NavigableSelect>` (`?season=` search param), per-season standings computed from scores + events join. Queries parallelized in two batches.
+- **News** (`/news`): Motorsport.com RSS feed, 20 article cards with thumbnails, ISR revalidation every 15 minutes.
+- **Profile** (`/profile/[userId]`): Season tabs, per-event prediction breakdown. `<BackButton>` uses `router.back()` for context-aware navigation.
 
 ### Scoring Script
 
@@ -85,6 +89,7 @@ All dynamic pages use `cookies()` to opt out of static generation. Use `.maybeSi
 The app is optimized for Supabase Free + Vercel Hobby:
 - Middleware uses `getUser()` — validates session server-side and clears stale cookies on logout
 - Nav receives user props from server layout — no client-side `getUser()` on navigation
+- All pages parallelize independent queries via `Promise.all`
 - `/api/health` + `vercel.json` cron pings weekly to prevent Supabase inactivity pause
 - No `next/image` usage — plain `<img>` / `<FallbackImage>` avoids Vercel image optimization quota (5K transforms/month on Hobby)
 
@@ -98,3 +103,4 @@ The app is optimized for Supabase Free + Vercel Hobby:
 - Use `<img onError>` in Server Components — use `<FallbackImage>` instead
 - Call `supabase.auth.getUser()` in client-side Nav — use props from layout for Nav instead
 - Use `next/image` for external CDN images — uses optimization quota
+- Run independent Supabase queries sequentially — always `Promise.all` for parallel execution
