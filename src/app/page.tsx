@@ -1,4 +1,7 @@
 import Link from "next/link";
+import RaceCountdown from "@/components/RaceCountdown";
+import FallbackImage from "@/components/FallbackImage";
+import { getCircuitImageUrl } from "@/lib/circuitImages";
 import { createClient } from "@/lib/supabase/server";
 import Card from "@/components/Card";
 import Badge from "@/components/Badge";
@@ -34,10 +37,6 @@ export default async function DashboardPage() {
     .order("total_points", { ascending: false })
     .limit(5);
 
-  const daysUntil = nextEvent
-    ? Math.max(0, Math.ceil((new Date(nextEvent.date).getTime() - Date.now()) / 86400000))
-    : null;
-
   const nextEventStarted = nextEvent
     ? new Date(nextEvent.time ? `${nextEvent.date}T${nextEvent.time}` : `${nextEvent.date}T00:00:00Z`) <= new Date()
     : false;
@@ -47,8 +46,14 @@ export default async function DashboardPage() {
 
   return (
     <div className="space-y-6 animate-fade-in">
-      <Card className="w-full racing-stripe-bg">
-        <div className="p-6 space-y-3">
+      <Card className="w-full racing-stripe-bg relative overflow-hidden">
+        {(() => {
+          const circuitUrl = nextEvent ? getCircuitImageUrl(nextEvent.circuit_id ?? "") : null;
+          return circuitUrl ? (
+            <FallbackImage src={circuitUrl} alt="" className="circuit-bg" />
+          ) : null;
+        })()}
+        <div className="p-6 space-y-3 relative">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               {nextEvent?.is_sprint && (
@@ -67,17 +72,7 @@ export default async function DashboardPage() {
               <p style={{ fontFamily: 'var(--font-titillium)' }} className="text-sm text-[var(--muted)]">
                 {nextEvent.circuit_name} &middot; {nextEvent.country}
               </p>
-              <div className="flex items-center gap-6">
-                <div
-                  className="text-5xl font-bold"
-                  style={{ fontFamily: 'var(--font-titillium)', color: 'var(--f1-red)' }}
-                >
-                  {daysUntil === 0 ? "Race Day" : `${daysUntil}d`}
-                </div>
-                <div className="text-sm text-[var(--muted)]">
-                  {daysUntil === 0 ? "Predictions are locked" : "until race day"}
-                </div>
-              </div>
+              <RaceCountdown targetDate={nextEvent.date} targetTime={nextEvent.time} />
               {nextEventLocked ? (
                 <Button href={`/events/${nextEvent.id}/predictions`} variant="secondary" size="lg">
                   View Predictions
