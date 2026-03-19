@@ -41,7 +41,7 @@ export default function Nav({
   if (pathname.startsWith("/auth")) return null;
 
   return (
-    <header className="relative bg-[var(--surface)] border-b border-[var(--glass-border)]">
+    <header className="sticky top-0 z-50 bg-[var(--surface)] border-b border-[var(--glass-border)]">
       {/* Top Accent Line */}
       <div className="absolute top-0 left-0 right-0 h-0.5" style={{ background: "linear-gradient(to right, var(--f1-red), transparent)" }} />
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
