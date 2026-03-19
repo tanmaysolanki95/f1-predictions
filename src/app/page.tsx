@@ -84,7 +84,7 @@ export default async function DashboardPage() {
                   <Button href={`/events/${nextEvent.id}/predictions?from=/`} variant="secondary" size="lg">
                     View Predictions
                   </Button>
-                  <Button href={`/auth/login?redirect=${encodeURIComponent(`/events/${nextEvent.id}/predict`)}`} variant="primary" size="lg">
+                  <Button href={`/auth/login?redirect=${encodeURIComponent(`/events/${nextEvent.id}/predict`)}&back=/`} variant="primary" size="lg">
                     Sign in to Predict
                   </Button>
                 </div>

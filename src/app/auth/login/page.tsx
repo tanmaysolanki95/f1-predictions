@@ -10,6 +10,7 @@ import Card from "@/components/Card";
 export default function LoginPage() {
   const searchParams = useSearchParams();
   const redirectTo = searchParams.get("redirect");
+  const backTo = searchParams.get("back") || "/";
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -30,8 +31,11 @@ export default function LoginPage() {
     }
   }
 
-  const signupHref = redirectTo
-    ? `/auth/signup?redirect=${encodeURIComponent(redirectTo)}`
+  const signupParams = new URLSearchParams();
+  if (redirectTo) signupParams.set("redirect", redirectTo);
+  if (backTo !== "/") signupParams.set("back", backTo);
+  const signupHref = signupParams.size
+    ? `/auth/signup?${signupParams.toString()}`
     : "/auth/signup";
 
   return (
@@ -40,7 +44,7 @@ export default function LoginPage() {
         <div className="border-t-2 border-[var(--f1-red)]" />
         <div className="p-6 space-y-4">
           <Link
-            href={redirectTo || "/"}
+            href={backTo}
             className="inline-flex items-center gap-1 text-sm text-white/50 hover:text-white/80 transition-colors"
             style={{ fontFamily: 'var(--font-titillium)' }}
           >

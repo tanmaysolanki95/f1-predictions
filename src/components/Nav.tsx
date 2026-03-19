@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
 const LINKS = [
@@ -20,7 +20,6 @@ export default function Nav({
   userId: string | null;
 }) {
   const pathname = usePathname();
-  const router = useRouter();
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
@@ -121,7 +120,7 @@ export default function Nav({
               </>
             ) : (
               <Link
-                href={`/auth/login?redirect=${encodeURIComponent(pathname)}`}
+                href={`/auth/login?redirect=${encodeURIComponent(pathname)}&back=${encodeURIComponent(pathname)}`}
                 className="hidden md:flex items-center gap-2 text-sm font-medium text-white/80 hover:text-white border-l border-[var(--glass-border)] pl-3 py-1 transition-colors"
                 style={{ fontFamily: 'var(--font-titillium)' }}
               >
@@ -172,7 +171,7 @@ export default function Nav({
             </>
           ) : (
             <Link
-              href={`/auth/login?redirect=${encodeURIComponent(pathname)}`}
+              href={`/auth/login?redirect=${encodeURIComponent(pathname)}&back=${encodeURIComponent(pathname)}`}
               onClick={() => setOpen(false)}
               className="block px-4 py-2 text-sm font-medium text-[var(--f1-red)] hover:bg-white/5"
               style={{ fontFamily: 'var(--font-titillium)' }}

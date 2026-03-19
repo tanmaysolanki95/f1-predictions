@@ -10,6 +10,7 @@ import Card from "@/components/Card";
 export default function SignupPage() {
   const searchParams = useSearchParams();
   const redirectTo = searchParams.get("redirect");
+  const backTo = searchParams.get("back") || "/";
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -30,8 +31,11 @@ export default function SignupPage() {
     }
   }
 
-  const loginHref = redirectTo
-    ? `/auth/login?redirect=${encodeURIComponent(redirectTo)}`
+  const loginParams = new URLSearchParams();
+  if (redirectTo) loginParams.set("redirect", redirectTo);
+  if (backTo !== "/") loginParams.set("back", backTo);
+  const loginHref = loginParams.size
+    ? `/auth/login?${loginParams.toString()}`
     : "/auth/login";
 
   return (
@@ -39,15 +43,13 @@ export default function SignupPage() {
       <Card className="w-full max-w-md">
         <div className="border-t-2 border-[var(--f1-red)]" />
         <div className="p-6 space-y-4">
-          {redirectTo && (
-            <Link
-              href={redirectTo}
-              className="inline-flex items-center gap-1 text-sm text-white/50 hover:text-white/80 transition-colors"
-              style={{ fontFamily: 'var(--font-titillium)' }}
-            >
-              &larr; Back
-            </Link>
-          )}
+          <Link
+            href={backTo}
+            className="inline-flex items-center gap-1 text-sm text-white/50 hover:text-white/80 transition-colors"
+            style={{ fontFamily: 'var(--font-titillium)' }}
+          >
+            &larr; Back
+          </Link>
           <h2 className="text-2xl font-bold" style={{ fontFamily: 'var(--font-titillium)' }}>Create account</h2>
           <p className="text-sm text-white/50 mb-2">Join your friends on F1 Predictions</p>
 
