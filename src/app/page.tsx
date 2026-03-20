@@ -115,11 +115,7 @@ export default async function DashboardPage() {
       </Card>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-fade-in">
-        <Card title={
-          <Link href="/events" className="group">
-            <h3 className="text-sm font-semibold text-white group-hover:text-[var(--f1-red)] transition-colors">Season Progress</h3>
-          </Link>
-        }>
+        <Card title="Season Progress" headerHref="/events">
           <div className="space-y-3">
             <p className="text-sm text-[var(--muted)]">
               Round {completedRounds} of {TOTAL_ROUNDS} completed
@@ -136,11 +132,7 @@ export default async function DashboardPage() {
           </div>
         </Card>
 
-        <Card title={
-          <Link href="/leaderboard" className="group">
-            <h3 className="text-sm font-semibold text-white group-hover:text-[var(--f1-red)] transition-colors">Leaderboard</h3>
-          </Link>
-        }>
+        <Card title="Leaderboard" headerHref="/leaderboard">
           {leaders && leaders.length > 0 ? (
             <div className="space-y-2">
               {leaders.map((entry, i) => (
@@ -164,11 +156,7 @@ export default async function DashboardPage() {
       </div>
 
       {/* News headlines compact card on dashboard */}
-      <Card title={
-        <Link href="/news" className="group">
-          <h3 className="text-sm font-semibold text-white group-hover:text-[var(--f1-red)] transition-colors">F1 News</h3>
-        </Link>
-      } className="">
+      <Card title="F1 News" headerHref="/news" className="">
         <div className="divide-y divide-[var(--border)]">
           {news && news.length > 0 ? (
             news.map((n) => (
