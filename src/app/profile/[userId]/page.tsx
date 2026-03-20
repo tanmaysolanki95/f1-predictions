@@ -1,5 +1,5 @@
 import ProfileTabs from "./ProfileTabs";
-import BackButton from "@/components/BackButton";
+import Button from "@/components/Button";
 import { createClient } from "@/lib/supabase/server";
 import type { Profile, Event, Prediction, Score, Driver } from "@/types/database";
 
@@ -142,7 +142,9 @@ export default async function ProfilePage({ params }: { params: Promise<{ userId
   return (
     <main className="p-6 text-white animate-fade-in">
       <div className="max-w-5xl mx-auto space-y-6">
-        <BackButton />
+        <Button variant="ghost" size="sm" href="/?from=/profile" className="mb-4">
+          &larr; Back
+        </Button>
 
         <section className="px-4 py-3 rounded-[var(--radius-lg)] bg-[var(--surface)] border border-[var(--glass-border)]">
           <div className="flex items-center justify-between">

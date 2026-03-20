@@ -1,7 +1,7 @@
 import React from "react";
 
 type CardProps = {
-  title?: string
+  title?: React.ReactNode
   badge?: React.ReactNode
   children: React.ReactNode
   className?: string
@@ -24,7 +24,11 @@ export default function Card({ title, badge, children, className = '' }: CardPro
             {title ? (
               <div>
                 <div className="w-10 h-0.5 bg-[var(--f1-red)] rounded-full mb-2" />
-                <h3 className="text-sm font-semibold text-white">{title}</h3>
+                {typeof title === 'string' ? (
+                  <h3 className="text-sm font-semibold text-white">{title}</h3>
+                ) : (
+                  title
+                )}
               </div>
             ) : (
               <span />

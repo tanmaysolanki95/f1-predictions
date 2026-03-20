@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import DataTable from "@/components/DataTable";
 import Card from "@/components/Card";
+import Button from "@/components/Button";
 import NavigableSelect from "@/components/NavigableSelect";
 import { Suspense } from "react";
 
@@ -113,6 +114,9 @@ export default async function LeaderboardPage({
 
   return (
     <main className="p-6 text-[var(--muted)] animate-fade-in">
+      <Button variant="ghost" size="sm" href="/?from=/leaderboard" className="mb-4">
+        &larr; Back
+      </Button>
       <div className="mb-4 flex items-center gap-4">
         <Suspense fallback={null}>
           <NavigableSelect

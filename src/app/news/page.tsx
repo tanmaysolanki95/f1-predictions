@@ -1,4 +1,5 @@
 import Card from "@/components/Card";
+import Button from "@/components/Button";
 import FallbackImage from "@/components/FallbackImage";
 import { fetchNews } from "@/lib/newsFeed";
 
@@ -17,6 +18,9 @@ export default async function NewsPage() {
 
   return (
     <main className="p-6 text-[var(--muted)] animate-fade-in space-y-4">
+      <Button variant="ghost" size="sm" href="/?from=/news" className="mb-2">
+        &larr; Back
+      </Button>
       <h1 style={{ fontFamily: 'var(--font-titillium)' }} className="text-2xl font-extrabold text-white">F1 News</h1>
       <p className="text-sm text-[var(--muted)]">Latest from Motorsport.com</p>
 

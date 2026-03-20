@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import type { Driver, Event, Prediction } from "@/types/database";
 import PredictionForm from "./PredictionForm";
+import Button from "@/components/Button";
 
 function hasEventBegun(event: Event): boolean {
   const dateStr = event.time
@@ -64,11 +65,16 @@ export default async function Page({
   const isLocked = event.predictions_locked || hasEventBegun(event);
 
   return (
-    <PredictionForm
-      event={event}
-      drivers={drivers}
-      existingPrediction={existingPrediction}
-      isLocked={isLocked}
-    />
+    <div className="animate-fade-in p-6">
+      <Button variant="ghost" size="sm" href="/events?from=/predict" className="mb-4">
+        &larr; Back
+      </Button>
+      <PredictionForm
+        event={event}
+        drivers={drivers}
+        existingPrediction={existingPrediction}
+        isLocked={isLocked}
+      />
+    </div>
   );
 }

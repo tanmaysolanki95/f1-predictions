@@ -9,11 +9,7 @@ import { getCircuitImageUrl } from "@/lib/circuitImages";
 import { getCountryFlagUrl } from "@/lib/countryFlags";
 import type { Driver, Event, Prediction, Profile } from "@/types/database";
 
-const BACK_LABELS: Record<string, string> = {
-  "/": "Dashboard",
-  "/events": "Events",
-  "/leaderboard": "Leaderboard",
-};
+const VALID_BACK_PATHS = ["/", "/events", "/leaderboard"];
 
 export default async function Page({
   params,
@@ -24,8 +20,7 @@ export default async function Page({
 }) {
   const { eventId } = await params;
   const { from } = await searchParams;
-  const backHref = from && BACK_LABELS[from] ? from : "/events";
-  const backLabel = BACK_LABELS[backHref] ?? "Events";
+  const backHref = VALID_BACK_PATHS.includes(from ?? "") ? from! : "/events";
   const supabase = await createClient();
   
   const [
@@ -178,7 +173,7 @@ export default async function Page({
     <div className="p-6 text-white animate-fade-in">
       <div className="max-w-5xl mx-auto px-4 py-8 space-y-6">
         <Button variant="ghost" size="sm" href={backHref}>
-          &larr; Back to {backLabel}
+          &larr; Back
         </Button>
 
         <Card className="w-full racing-stripe-bg relative overflow-hidden">

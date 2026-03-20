@@ -33,6 +33,9 @@ export default async function EventsPage() {
 
   return (
     <main className="p-6 text-[var(--muted)] animate-fade-in">
+      <Button variant="ghost" size="sm" href="/?from=/events" className="mb-4">
+        &larr; Back
+      </Button>
       <Card title="2026 Season">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {(events ?? []).map((ev) => {

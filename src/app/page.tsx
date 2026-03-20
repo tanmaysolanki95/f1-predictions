@@ -68,9 +68,14 @@ export default async function DashboardPage() {
           </div>
           {nextEvent ? (
             <div className="space-y-3">
-              <div style={{ fontFamily: 'var(--font-titillium)' }} className="text-4xl font-extrabold">
-                {nextEvent.name}
-              </div>
+              <Link
+                href={nextEventLocked ? `/events/${nextEvent.id}/predictions?from=/` : `/events/${nextEvent.id}/predict`}
+                className="group block hover:opacity-80 transition-opacity"
+              >
+                <div style={{ fontFamily: 'var(--font-titillium)' }} className="text-4xl font-extrabold group-hover:text-[var(--f1-red)] transition-colors">
+                  {nextEvent.name}
+                </div>
+              </Link>
               <p style={{ fontFamily: 'var(--font-titillium)' }} className="text-sm text-[var(--muted)]">
                 {nextEvent.circuit_name} &middot; {nextEvent.country}
               </p>
@@ -110,7 +115,11 @@ export default async function DashboardPage() {
       </Card>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-fade-in">
-        <Card title="Season Progress">
+        <Card title={
+          <Link href="/events" className="group">
+            <h3 className="text-sm font-semibold text-white group-hover:text-[var(--f1-red)] transition-colors">Season Progress</h3>
+          </Link>
+        }>
           <div className="space-y-3">
             <p className="text-sm text-[var(--muted)]">
               Round {completedRounds} of {TOTAL_ROUNDS} completed
@@ -127,7 +136,11 @@ export default async function DashboardPage() {
           </div>
         </Card>
 
-        <Card title="Leaderboard">
+        <Card title={
+          <Link href="/leaderboard" className="group">
+            <h3 className="text-sm font-semibold text-white group-hover:text-[var(--f1-red)] transition-colors">Leaderboard</h3>
+          </Link>
+        }>
           {leaders && leaders.length > 0 ? (
             <div className="space-y-2">
               {leaders.map((entry, i) => (
@@ -143,12 +156,6 @@ export default async function DashboardPage() {
                   </span>
                 </div>
               ))}
-              <Link
-                href="/leaderboard"
-                className="block text-center text-sm text-[#E10600] hover:underline mt-2"
-              >
-                View Full Leaderboard →
-              </Link>
             </div>
           ) : (
             <p className="text-sm text-[var(--muted)]">No scores yet — predictions start soon!</p>
@@ -156,19 +163,12 @@ export default async function DashboardPage() {
         </Card>
       </div>
 
-      <Card title="Quick Links">
-        <div className="flex flex-col gap-3">
-          <Button href="/events" variant="secondary" size="md">
-            View All Events
-          </Button>
-          <Button href="/leaderboard" variant="secondary" size="md">
-            Full Leaderboard
-          </Button>
-        </div>
-      </Card>
-
       {/* News headlines compact card on dashboard */}
-      <Card title="F1 News" className="">
+      <Card title={
+        <Link href="/news" className="group">
+          <h3 className="text-sm font-semibold text-white group-hover:text-[var(--f1-red)] transition-colors">F1 News</h3>
+        </Link>
+      } className="">
         <div className="divide-y divide-[var(--border)]">
           {news && news.length > 0 ? (
             news.map((n) => (
@@ -190,7 +190,6 @@ export default async function DashboardPage() {
             <p className="text-sm text-[var(--muted)]">No news available</p>
           )}
         </div>
-        <Link href="/news" className="block text-center text-sm text-[#E10600] hover:underline mt-2">View All News →</Link>
       </Card>
     </div>
   );
