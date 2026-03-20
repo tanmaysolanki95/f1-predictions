@@ -37,6 +37,7 @@ The project supports two env var names for the Supabase key: `NEXT_PUBLIC_SUPABA
 - Countdown timer classes: `.countdown`, `.countdown-segment`, `.countdown-value`, `.countdown-label`, `.countdown-separator`
 - Circuit background: `.circuit-bg` (15% opacity) and `.circuit-bg--hero` (40% opacity, wider, edge fades) — absolutely positioned decorative overlays with mask gradients
 - Button system: `import Button from "@/components/Button"` — variants: primary/secondary/ghost, sizes: sm/md/lg. Link buttons auto-show a spinner during navigation.
+- Pull-to-refresh: `<PullToRefresh>` (client component, `src/components/PullToRefresh.tsx`) wraps Nav + main in the root layout. Handles touch events globally, slides the entire page down during the pull gesture, shows an indicator in the revealed gap, calls `router.refresh()` on release. `overscroll-behavior-y: none` on body disables the browser's native PTR.
 
 ### F1 Asset Utilities
 
@@ -76,6 +77,8 @@ All consumers must handle `null` returns gracefully. Use `<FallbackImage>` (clie
 ### Pages
 
 All dynamic pages use `cookies()` to opt out of static generation. Use `.maybeSingle()` instead of `.single()` for queries that may return 0 rows. Parallelize independent queries with `Promise.all`.
+
+Each route has a `loading.tsx` that Next.js renders instantly on navigation (via Suspense) while the page's async data fetching completes. Skeletons use the `.skeleton` shimmer class and mirror the page's card/table structure.
 
 - **Dashboard** (`/`): Live `<RaceCountdown>` targeting `event.date + event.time`, circuit layout as hero background, leaderboard preview, news headlines. Smart CTA: "Make Predictions" / "View Predictions" + "Edit Picks" based on existing prediction. For anonymous users: "View Predictions" + "Sign in to Predict". 5 queries parallelized.
 - **Events** (`/events`): Country flag images via `<FallbackImage>`, past events dimmed (`opacity-50 grayscale`), next event highlighted with red glow. Completed events link to predictions (combined results view), upcoming link to predict form. Anonymous users always link to predictions view (never predict form).
