@@ -70,11 +70,14 @@ export default async function DashboardPage() {
             <div className="space-y-3">
               <Link
                 href={nextEventLocked ? `/events/${nextEvent.id}/predictions?from=/` : `/events/${nextEvent.id}/predict`}
-                className="group block hover:opacity-80 transition-opacity"
+                className="group inline-flex items-center gap-2 active:opacity-70 transition-opacity"
               >
-                <div style={{ fontFamily: 'var(--font-titillium)' }} className="text-4xl font-extrabold group-hover:text-[var(--f1-red)] transition-colors">
+                <span style={{ fontFamily: 'var(--font-titillium)' }} className="text-4xl font-extrabold group-hover:text-[var(--f1-red)] transition-colors underline underline-offset-4 decoration-[var(--border-light)] group-hover:decoration-[var(--f1-red)]">
                   {nextEvent.name}
-                </div>
+                </span>
+                <svg width="24" height="24" viewBox="0 0 16 16" fill="none" aria-hidden="true" className="flex-shrink-0 text-[var(--muted)] group-hover:text-[var(--f1-red)] transition-colors translate-y-px">
+                  <path d="M6 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
               </Link>
               <p style={{ fontFamily: 'var(--font-titillium)' }} className="text-sm text-[var(--muted)]">
                 {nextEvent.circuit_name} &middot; {nextEvent.country}
