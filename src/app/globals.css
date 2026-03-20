@@ -68,6 +68,7 @@ body {
   background: var(--bg);
   color: var(--text);
   font-family: var(--font-geist-sans), Inter, system-ui, -apple-system, sans-serif;
+  overscroll-behavior-y: none; /* prevent browser native pull-to-refresh */
 }
 
 @keyframes fade-in {

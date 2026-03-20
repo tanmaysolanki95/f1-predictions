@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono, Titillium_Web } from "next/font/google";
 import { createClient } from "@/lib/supabase/server";
 import Nav from "@/components/Nav";
+import PullToRefresh from "@/components/PullToRefresh";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -49,9 +50,11 @@ export default async function RootLayout({
           displayName={user?.user_metadata?.display_name ?? user?.email ?? null}
           userId={user?.id ?? null}
         />
-        <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          {children}
-        </main>
+        <PullToRefresh>
+          <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            {children}
+          </main>
+        </PullToRefresh>
       </body>
     </html>
   );
