@@ -46,11 +46,11 @@ export default async function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} ${titillium.variable} dark h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-[var(--bg)] text-[var(--text)] safe-bottom">
-        <Nav
-          displayName={user?.user_metadata?.display_name ?? user?.email ?? null}
-          userId={user?.id ?? null}
-        />
         <PullToRefresh>
+          <Nav
+            displayName={user?.user_metadata?.display_name ?? user?.email ?? null}
+            userId={user?.id ?? null}
+          />
           <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
             {children}
           </main>

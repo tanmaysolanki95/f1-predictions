@@ -3,9 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
-const THRESHOLD = 56;   // visual px required to trigger refresh
-const MAX_PULL = 80;    // max visual displacement
-const NAV_HEIGHT = 56;  // h-14 from Nav
+const THRESHOLD = 56;  // visual px required to trigger refresh
+const MAX_PULL = 80;   // max visual displacement
 
 type Phase = "idle" | "pulling" | "refreshing";
 
@@ -14,7 +13,7 @@ export default function PullToRefresh({ children }: { children: React.ReactNode 
   const [pull, setPull] = useState(0);
   const [phase, setPhase] = useState<Phase>("idle");
 
-  // All mutable state in refs so event handlers are stable (no deps churn)
+  // Refs so event handlers are stable with no deps churn
   const startY = useRef(0);
   const active = useRef(false);
   const pullRef = useRef(0);
@@ -32,7 +31,6 @@ export default function PullToRefresh({ children }: { children: React.ReactNode 
       const delta = e.touches[0].clientY - startY.current;
 
       if (delta <= 0) {
-        // Finger moving up — cancel PTR, let browser scroll normally
         active.current = false;
         pullRef.current = 0;
         phaseRef.current = "idle";
@@ -41,13 +39,13 @@ export default function PullToRefresh({ children }: { children: React.ReactNode 
         return;
       }
 
-      // Apply 0.5× resistance so it feels like you're pulling against tension
+      // 0.5× resistance so it feels like pulling against tension
       const visual = Math.min(delta * 0.5, MAX_PULL);
       pullRef.current = visual;
       phaseRef.current = "pulling";
       setPull(visual);
       setPhase("pulling");
-      e.preventDefault(); // prevent native rubber-band / browser PTR
+      e.preventDefault();
     };
 
     const onEnd = () => {
@@ -57,7 +55,7 @@ export default function PullToRefresh({ children }: { children: React.ReactNode 
       if (pullRef.current >= THRESHOLD) {
         phaseRef.current = "refreshing";
         setPhase("refreshing");
-        setPull(Math.round(THRESHOLD * 0.7)); // settle to smaller position
+        setPull(Math.round(THRESHOLD * 0.75)); // settle to a smaller position
         router.refresh();
         setTimeout(() => {
           phaseRef.current = "idle";
@@ -85,22 +83,26 @@ export default function PullToRefresh({ children }: { children: React.ReactNode 
 
   const progress = Math.min(pull / THRESHOLD, 1);
   const triggered = pull >= THRESHOLD;
-  const visible = pull > 2 || phase === "refreshing";
-  const animating = phase !== "pulling"; // enable CSS transition when not actively dragging
+  const visible = pull > 4 || phase === "refreshing";
+  const animating = phase !== "pulling";
+
+  // Indicator sits in the revealed gap above the content.
+  // translateY: starts off-screen (-20px), slides in as pull increases.
+  const indicatorY = pull * 0.6 - 20;
 
   return (
     <>
-      {/* Indicator: slides in below Nav as you pull */}
+      {/* Indicator — fixed at viewport top, slides into the gap as content shifts down */}
       <div
         aria-hidden="true"
         style={{
           position: "fixed",
-          top: NAV_HEIGHT,
+          top: 0,
           left: "50%",
-          transform: `translateX(-50%) translateY(${visible ? pull - 40 : -48}px)`,
+          transform: `translateX(-50%) translateY(${indicatorY}px)`,
           transition: animating ? "transform 0.3s ease, opacity 0.3s ease" : "none",
           opacity: visible ? Math.min(progress * 2, 1) : 0,
-          zIndex: 40,
+          zIndex: 100,
           pointerEvents: "none",
         }}
       >
@@ -149,7 +151,16 @@ export default function PullToRefresh({ children }: { children: React.ReactNode 
         </div>
       </div>
 
-      {children}
+      {/* Entire page content (Nav + main) slides down during pull */}
+      <div
+        style={{
+          transform: `translateY(${pull}px)`,
+          transition: animating ? "transform 0.3s ease" : "none",
+          willChange: "transform",
+        }}
+      >
+        {children}
+      </div>
     </>
   );
 }
