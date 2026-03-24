@@ -7,7 +7,7 @@ import FallbackImage from "@/components/FallbackImage";
 import { createClient } from "@/lib/supabase/server";
 import { getCircuitImageUrl } from "@/lib/circuitImages";
 import { getCountryFlagUrl } from "@/lib/countryFlags";
-import type { Driver, Event, Prediction, Profile } from "@/types/database";
+import type { Driver, Event, EventSession, Prediction, Profile } from "@/types/database";
 
 const VALID_BACK_PATHS = ["/", "/events", "/leaderboard"];
 
@@ -31,6 +31,7 @@ export default async function Page({
     { data: sessionResults },
     { data: scores },
     { data: { user } },
+    fp1Session,
   ] = await Promise.all([
     supabase
       .from("events")
@@ -50,6 +51,13 @@ export default async function Page({
       .eq("event_id", Number(eventId)),
     supabase.from("scores").select("user_id, total_points").eq("event_id", Number(eventId)),
     supabase.auth.getUser(),
+    supabase
+      .from("event_sessions")
+      .select("date, time")
+      .eq("event_id", Number(eventId))
+      .eq("session_type", "fp1")
+      .maybeSingle()
+      .then((r) => r.data as Pick<EventSession, "date" | "time"> | null),
   ]);
 
   if (!event) {
@@ -59,6 +67,11 @@ export default async function Page({
       </div>
     );
   }
+
+  const fp1DateTime = fp1Session
+    ? new Date(`${fp1Session.date}T${fp1Session.time}`)
+    : new Date(`${event.date}T00:00:00Z`);
+  const isLocked = event.predictions_locked || fp1DateTime <= new Date();
 
   const driversMap = new Map<string, string>();
   for (const d of drivers ?? []) {
@@ -263,7 +276,7 @@ export default async function Page({
           </Card>
         )}
 
-        {!hasResults && user && (
+        {!isLocked && user && (
           <div className="flex justify-end">
             <Button variant="primary" href={`/events/${eventId}/predict?edit`}>
               Make / Edit predictions
