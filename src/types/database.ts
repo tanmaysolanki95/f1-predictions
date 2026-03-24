@@ -106,6 +106,15 @@ export interface Score {
   computed_at: string;
 }
 
+// ── Event Sessions ───────────────────────────────────────────
+export interface EventSession {
+  id: number;
+  event_id: number;
+  session_type: 'fp1' | 'fp2' | 'fp3' | 'sprint_qualifying' | 'sprint_race' | 'qualifying' | 'race';
+  date: string;  // YYYY-MM-DD
+  time: string;  // HH:MM:SSZ
+}
+
 // ── Leaderboard View ────────────────────────────────────────
 export interface LeaderboardEntry {
   user_id: string;
