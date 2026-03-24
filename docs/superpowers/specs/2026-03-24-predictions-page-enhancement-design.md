@@ -142,7 +142,13 @@ Replace the current flat `grid-cols-5` of code labels with a row of driver cards
 ### Sprint events
 If `event.is_sprint`, two additional cards are appended below in a separate row: Sprint Pole and Sprint P1. Sprint Pole and Sprint P1 cards follow the same `grid-cols-2` layout as the existing sprint section.
 
-**Known limitation:** `actualSprintPole` will always be `null`. The scoring script (`scripts/fetch-and-score.ts`) does not fetch sprint qualifying results from the Jolpica API — only `"qualifying"`, `"race"`, and `"sprint"` session types are stored in `session_results`. Fixing this requires adding sprint qualifying fetching to the scoring script, a new `"sprint_qualifying"` value in the `SessionType` union, and scoring engine changes. That work is out of scope for this spec.
+**Known limitation:** Assign `actualSprintPole` as `null` directly:
+
+```ts
+const actualSprintPole = null;
+```
+
+The current page derives it from `qualResults` (main qualifying), which is a pre-existing bug — it returns the regular qualifying pole sitter rather than sprint qualifying pole. Sprint qualifying results are not stored in `session_results` at all (the scoring script only stores `"qualifying"`, `"race"`, and `"sprint"` session types). Fixing this properly requires adding sprint qualifying fetching to the scoring script, a new `"sprint_qualifying"` value in the `SessionType` union, and scoring engine changes — out of scope for this spec. Explicitly assigning `null` removes the pre-existing wrong derivation.
 
 ### Avatar rendering
 
@@ -192,7 +198,7 @@ The predictions/event detail page moves from the `/predictions` sub-route to the
 ### File moves
 - `src/app/events/[eventId]/predictions/page.tsx` → `src/app/events/[eventId]/page.tsx`
 - `src/app/events/[eventId]/predictions/loading.tsx` → `src/app/events/[eventId]/loading.tsx`
-- Delete the now-empty `src/app/events/[eventId]/predictions/` directory
+- Delete the now-empty `src/app/events/[eventId]/predictions/` directory (note: `predict/` is a sibling sub-route under `[eventId]/` and is unaffected)
 
 ### Link updates (7 references across 4 files)
 
@@ -218,6 +224,7 @@ The `VALID_BACK_PATHS` array and `?from=` back-nav logic inside the page are unc
 | `src/app/events/page.tsx` | Update 1 `/predictions` link |
 | `src/app/events/[eventId]/predict/page.tsx` | Update 1 `/predictions` redirect |
 | `src/app/events/[eventId]/predict/PredictionForm.tsx` | Update 1 `/predictions` router.push |
+| `src/app/events/[eventId]/loading.tsx` (moved) | Add skeleton section for `SessionSchedule` card (header + ~5 row skeletons using `.skeleton` class) |
 
 No new dependencies. No schema changes. No RLS changes.
 
