@@ -1,15 +1,8 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import type { Driver, Event, Prediction } from "@/types/database";
+import type { Driver, Event, EventSession, Prediction } from "@/types/database";
 import PredictionForm from "./PredictionForm";
 import Button from "@/components/Button";
-
-function hasEventBegun(event: Event): boolean {
-  const dateStr = event.time
-    ? `${event.date}T${event.time}`
-    : `${event.date}T00:00:00Z`;
-  return new Date(dateStr) <= new Date();
-}
 
 export default async function Page({
   params,
@@ -22,13 +15,20 @@ export default async function Page({
   const { edit } = await searchParams;
   const supabase = await createClient();
 
-  const [{ data: event }, { data: drivers }] = await Promise.all([
+  const [{ data: event }, { data: drivers }, fp1Session] = await Promise.all([
     supabase
       .from("events")
       .select("*")
       .eq("id", Number(eventId))
       .single<Event>(),
     supabase.from("drivers").select("*").returns<Driver[]>(),
+    supabase
+      .from("event_sessions")
+      .select("date, time")
+      .eq("event_id", Number(eventId))
+      .eq("session_type", "fp1")
+      .maybeSingle()
+      .then((r) => r.data as Pick<EventSession, "date" | "time"> | null),
   ]);
 
   const {
@@ -62,7 +62,10 @@ export default async function Page({
     );
   }
 
-  const isLocked = event.predictions_locked || hasEventBegun(event);
+  const fp1DateTime = fp1Session
+    ? new Date(`${fp1Session.date}T${fp1Session.time}`)
+    : new Date(`${event.date}T00:00:00Z`);
+  const isLocked = event.predictions_locked || fp1DateTime <= new Date();
 
   return (
     <div className="animate-fade-in p-6">
