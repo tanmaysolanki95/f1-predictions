@@ -110,7 +110,7 @@ export interface Score {
 export interface EventSession {
   id: number;
   event_id: number;
-  session_type: 'fp1' | 'fp2' | 'fp3' | 'sprint_qualifying' | 'sprint_race' | 'qualifying' | 'race';
+  session_type: "fp1" | "fp2" | "fp3" | "sprint_qualifying" | "sprint_race" | "qualifying" | "race";
   date: string;  // YYYY-MM-DD
   time: string;  // HH:MM:SSZ
 }

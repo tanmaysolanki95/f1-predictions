@@ -144,7 +144,10 @@ async function upsertEventSessions(
   seasonYear: number,
   calendar: JolpicaRaceSchedule[],
 ) {
-  if (calendar.length === 0) return;
+  if (calendar.length === 0) {
+    console.log("No calendar data — skipping session upsert");
+    return;
+  }
 
   // Get DB event IDs keyed by round number
   const { data: events, error: eventsError } = await supabase
