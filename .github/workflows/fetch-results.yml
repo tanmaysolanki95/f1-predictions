@@ -2,10 +2,8 @@ name: Fetch F1 Results & Score Predictions
 
 on:
   schedule:
-    # Runs every Sunday at 18:00 UTC (after most race finishes)
-    - cron: "0 18 * * 0"
-    # Runs every Saturday at 16:00 UTC (after sprint races)
-    - cron: "0 16 * * 6"
+    # Runs every Monday at 13:00 UTC (8am EST)
+    - cron: "0 13 * * 1"
   workflow_dispatch:
     inputs:
       season:
