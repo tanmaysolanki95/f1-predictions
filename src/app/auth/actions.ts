@@ -1,7 +1,10 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
+
+const passwordSchema = z.string().min(8, "Password must be at least 8 characters.");
 
 function safeRedirectPath(path: unknown): string {
   if (typeof path !== "string" || !path.startsWith("/") || path.startsWith("//")) {
@@ -41,8 +44,9 @@ export async function signup(formData: FormData) {
   if (typeof email !== "string" || !email.trim()) {
     return { error: "Email is required." };
   }
-  if (typeof password !== "string" || password.length < 6) {
-    return { error: "Password must be at least 6 characters." };
+  const passwordResult = passwordSchema.safeParse(password);
+  if (!passwordResult.success) {
+    return { error: passwordResult.error.issues[0].message };
   }
   if (typeof displayName !== "string" || !displayName.trim()) {
     return { error: "Display name is required." };
@@ -51,7 +55,7 @@ export async function signup(formData: FormData) {
   const supabase = await createClient();
   const { error } = await supabase.auth.signUp({
     email,
-    password,
+    password: passwordResult.data,
     options: { data: { display_name: displayName.trim() } },
   });
 
@@ -84,12 +88,13 @@ export async function resetPassword(formData: FormData) {
 
 export async function updatePassword(formData: FormData) {
   const password = formData.get("password");
-  if (typeof password !== "string" || password.length < 6) {
-    return { error: "Password must be at least 6 characters." };
+  const passwordResult = passwordSchema.safeParse(password);
+  if (!passwordResult.success) {
+    return { error: passwordResult.error.issues[0].message };
   }
 
   const supabase = await createClient();
-  const { error } = await supabase.auth.updateUser({ password });
+  const { error } = await supabase.auth.updateUser({ password: passwordResult.data });
   if (error) return { error: error.message };
   redirect("/");
 }

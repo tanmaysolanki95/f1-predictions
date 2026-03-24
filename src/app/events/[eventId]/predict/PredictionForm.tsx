@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import DriverCard from "@/components/DriverCard";
@@ -21,6 +21,7 @@ type Props = {
   drivers: Driver[];
   existingPrediction: Prediction | null;
   isLocked: boolean;
+  fp1DateTime: string;
 };
 
 type FormValues = Partial<Record<PredictionCategory, string>>;
@@ -57,15 +58,25 @@ function findDuplicates(
   return dupes;
 }
 
-export default function PredictionForm({ event, drivers, existingPrediction, isLocked }: Props) {
+export default function PredictionForm({ event, drivers, existingPrediction, isLocked, fp1DateTime }: Props) {
   const router = useRouter();
   const [values, setValues] = useState<FormValues>(() =>
     buildInitialValues(existingPrediction),
   );
   const [saving, setSaving] = useState(false);
   const [feedback, setFeedback] = useState<{ type: "success" | "error"; message: string } | null>(null);
+  const [locked, setLocked] = useState(isLocked);
 
-  const locked = isLocked;
+  useEffect(() => {
+    if (locked) return;
+    const interval = setInterval(() => {
+      if (event.predictions_locked || new Date(fp1DateTime) <= new Date()) {
+        setLocked(true);
+        clearInterval(interval);
+      }
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [locked, fp1DateTime, event.predictions_locked]);
 
   const setField = (cat: PredictionCategory, driverId: string) => {
     setValues((prev) => ({ ...prev, [cat]: driverId }));

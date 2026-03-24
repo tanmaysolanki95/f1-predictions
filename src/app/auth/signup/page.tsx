@@ -95,9 +95,9 @@ export default function SignupPage() {
                 name="password"
                 type="password"
                 required
-                minLength={6}
+                minLength={8}
                 className="w-full rounded-md bg-[var(--surface)] border border-[var(--glass-border)] px-3 py-2 text-white text-sm placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-[var(--f1-red)]"
-                placeholder="Min 6 characters"
+                placeholder="Min 8 characters"
               />
             </div>
             <Button type="submit" variant="primary" size="lg" loading={loading} disabled={loading} className="w-full">

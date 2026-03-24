@@ -49,7 +49,7 @@ function parseItems(xml: string): NewsItem[] {
     const pubDate = extractTag(block, "pubDate");
     const category = extractTag(block, "category");
 
-    if (!title || !link) continue;
+    if (!title || !link || !link.startsWith("https://")) continue;
 
     items.push({
       title,

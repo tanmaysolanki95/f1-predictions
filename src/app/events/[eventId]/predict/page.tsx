@@ -70,6 +70,7 @@ export default async function Page({
         drivers={drivers}
         existingPrediction={existingPrediction ?? null}
         isLocked={isLocked}
+        fp1DateTime={fp1DateTime.toISOString()}
       />
     </div>
   );
