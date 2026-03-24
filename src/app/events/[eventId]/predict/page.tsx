@@ -15,7 +15,7 @@ export default async function Page({
   const { edit } = await searchParams;
   const supabase = await createClient();
 
-  const [{ data: event }, { data: drivers }, fp1Session] = await Promise.all([
+  const [{ data: event }, { data: drivers }, fp1Session, { data: { user } }] = await Promise.all([
     supabase
       .from("events")
       .select("*")
@@ -29,26 +29,19 @@ export default async function Page({
       .eq("session_type", "fp1")
       .maybeSingle()
       .then((r) => r.data as Pick<EventSession, "date" | "time"> | null),
+    supabase.auth.getUser(),
   ]);
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
 
   if (!user) {
     redirect(`/auth/login?redirect=${encodeURIComponent(`/events/${eventId}/predict`)}`);
   }
 
-  let existingPrediction: Prediction | null = null;
-  if (user) {
-    const { data } = await supabase
-      .from("predictions")
-      .select("*")
-      .eq("user_id", user.id)
-      .eq("event_id", Number(eventId))
-      .maybeSingle<Prediction>();
-    existingPrediction = data ?? null;
-  }
+  const { data: existingPrediction } = await supabase
+    .from("predictions")
+    .select("*")
+    .eq("user_id", user.id)
+    .eq("event_id", Number(eventId))
+    .maybeSingle<Prediction>();
 
   if (existingPrediction && edit === undefined) {
     redirect(`/events/${eventId}/predictions?from=/`);
@@ -75,7 +68,7 @@ export default async function Page({
       <PredictionForm
         event={event}
         drivers={drivers}
-        existingPrediction={existingPrediction}
+        existingPrediction={existingPrediction ?? null}
         isLocked={isLocked}
       />
     </div>
