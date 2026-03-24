@@ -55,8 +55,7 @@ export default async function DashboardPage() {
           .in("session_type", ["fp1", "sprint_qualifying", "sprint_race", "qualifying", "race"])
           .order("date", { ascending: true })
           .order("time", { ascending: true })
-          .returns<Pick<EventSession, "session_type" | "date" | "time">[]>()
-          .then((r) => r.data)
+          .then((r) => r.data as Pick<EventSession, "session_type" | "date" | "time">[] | null)
       : Promise.resolve(null),
     nextEvent && user
       ? supabase
