@@ -140,18 +140,9 @@ Replace the current flat `grid-cols-5` of code labels with a row of driver cards
 `team_colour` and `headshot_url` come from the expanded drivers query (Section 1). A `driversMap` is updated to carry `{ code, teamColour, headshotUrl }`.
 
 ### Sprint events
-If `event.is_sprint`, two additional cards are appended below in a separate row: Sprint Pole and Sprint P1.
+If `event.is_sprint`, two additional cards are appended below in a separate row: Sprint Pole and Sprint P1. Sprint Pole and Sprint P1 cards follow the same `grid-cols-2` layout as the existing sprint section.
 
-**Pre-existing bug fix:** The current page derives `actualSprintPole` from `qualResults` (main qualifying session), which is incorrect. Sprint pole should come from `sprint_qualifying` session results. As part of this implementation, fix the derivation:
-
-```ts
-// Before (wrong — uses main qualifying)
-const actualSprintPole = qualResults.find((r) => r.position === 1)?.driver_id ?? null;
-
-// After (correct — uses sprint qualifying session)
-const sprintQualResults = allSessionResults.filter((r) => r.session_type === "sprint_qualifying");
-const actualSprintPole = sprintQualResults.find((r) => r.position === 1)?.driver_id ?? null;
-```
+**Known limitation:** `actualSprintPole` will always be `null`. The scoring script (`scripts/fetch-and-score.ts`) does not fetch sprint qualifying results from the Jolpica API — only `"qualifying"`, `"race"`, and `"sprint"` session types are stored in `session_results`. Fixing this requires adding sprint qualifying fetching to the scoring script, a new `"sprint_qualifying"` value in the `SessionType` union, and scoring engine changes. That work is out of scope for this spec.
 
 ### Avatar rendering
 
@@ -163,7 +154,18 @@ For each driver in the results card:
 
 ## Section 4 — Predictions table: team color dots
 
-The existing `DataTable` is unchanged. The `resultCell` helper is updated:
+The existing `DataTable` is unchanged. The `resultCell` function signature changes — the `map` parameter type changes from `Map<string, string>` to `Map<string, DriverInfo>`:
+
+```ts
+function resultCell(
+  driverId: string | null,
+  actualId: string | null,
+  map: Map<string, DriverInfo>,
+  show: boolean,
+): React.ReactNode
+```
+
+The rendering is updated:
 
 ```tsx
 // Before: returns driver code string or styled <span>
@@ -183,12 +185,39 @@ The existing `DataTable` is unchanged. The `resultCell` helper is updated:
 
 ---
 
+## Section 5 — Route move: `/events/[eventId]/predictions` → `/events/[eventId]`
+
+The predictions/event detail page moves from the `/predictions` sub-route to the event root.
+
+### File moves
+- `src/app/events/[eventId]/predictions/page.tsx` → `src/app/events/[eventId]/page.tsx`
+- `src/app/events/[eventId]/predictions/loading.tsx` → `src/app/events/[eventId]/loading.tsx`
+- Delete the now-empty `src/app/events/[eventId]/predictions/` directory
+
+### Link updates (7 references across 4 files)
+
+| File | Old | New |
+|------|-----|-----|
+| `src/app/page.tsx` (3×) | `/events/${id}/predictions?from=/` | `/events/${id}?from=/` |
+| `src/app/events/page.tsx` | `/events/${ev.id}/predictions?from=/events` | `/events/${ev.id}?from=/events` |
+| `src/app/events/[eventId]/predict/page.tsx` | `/events/${eventId}/predictions?from=/` | `/events/${eventId}?from=/` |
+| `src/app/events/[eventId]/predict/PredictionForm.tsx` | `/events/${event.id}/predictions?from=/events` | `/events/${event.id}?from=/events` |
+
+The `VALID_BACK_PATHS` array and `?from=` back-nav logic inside the page are unchanged — those reference `/`, `/events`, and `/leaderboard`, not the predictions path.
+
+---
+
 ## Files Changed
 
 | File | Change |
 |------|--------|
-| `src/app/events/[eventId]/predictions/page.tsx` | Expand driver + sessions queries; add `SessionSchedule`; replace results grid; update `resultCell` |
+| `src/app/events/[eventId]/predictions/page.tsx` | **Move** to `src/app/events/[eventId]/page.tsx`; expand driver + sessions queries; add `SessionSchedule`; replace results grid; update `resultCell` |
+| `src/app/events/[eventId]/predictions/loading.tsx` | **Move** to `src/app/events/[eventId]/loading.tsx` |
 | `src/components/SessionSchedule.tsx` | New file — weekend schedule client component |
+| `src/app/page.tsx` | Update 3 `/predictions` links |
+| `src/app/events/page.tsx` | Update 1 `/predictions` link |
+| `src/app/events/[eventId]/predict/page.tsx` | Update 1 `/predictions` redirect |
+| `src/app/events/[eventId]/predict/PredictionForm.tsx` | Update 1 `/predictions` router.push |
 
 No new dependencies. No schema changes. No RLS changes.
 
