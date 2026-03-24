@@ -1,5 +1,6 @@
 import Link from "next/link";
 import RaceCountdown from "@/components/RaceCountdown";
+import LockCountdown from "@/components/LockCountdown";
 import FallbackImage from "@/components/FallbackImage";
 import { getCircuitImageUrl } from "@/lib/circuitImages";
 import { createClient } from "@/lib/supabase/server";
@@ -7,8 +8,22 @@ import Card from "@/components/Card";
 import Badge from "@/components/Badge";
 import Button from "@/components/Button";
 import { fetchNews } from "@/lib/newsFeed";
+import type { EventSession } from "@/types/database";
 
 const TOTAL_ROUNDS = 22;
+
+function formatSessionLabel(sessionType: EventSession["session_type"]): string {
+  const labels: Record<EventSession["session_type"], string> = {
+    fp1: "FP1",
+    fp2: "FP2",
+    fp3: "FP3",
+    sprint_qualifying: "Sprint Qualifying",
+    sprint_race: "Sprint Race",
+    qualifying: "Qualifying",
+    race: "Race",
+  };
+  return `Next: ${labels[sessionType]}`;
+}
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -30,20 +45,39 @@ export default async function DashboardPage() {
 
   const completedRounds = pastEvents?.round ?? 0;
 
-  const hasPrediction = nextEvent && user
-    ? !!(await supabase
-        .from("predictions")
-        .select("id", { count: "exact", head: true })
-        .eq("event_id", nextEvent.id)
-        .eq("user_id", user.id)
-        .then(r => r.count))
-    : false;
+  // Follow-up queries that depend on nextEvent (run in parallel)
+  const [eventSessions, hasPrediction] = await Promise.all([
+    nextEvent
+      ? supabase
+          .from("event_sessions")
+          .select("session_type, date, time")
+          .eq("event_id", nextEvent.id)
+          .in("session_type", ["fp1", "sprint_qualifying", "sprint_race", "qualifying", "race"])
+          .order("date", { ascending: true })
+          .order("time", { ascending: true })
+          .returns<Pick<EventSession, "session_type" | "date" | "time">[]>()
+          .then((r) => r.data)
+      : Promise.resolve(null),
+    nextEvent && user
+      ? supabase
+          .from("predictions")
+          .select("id", { count: "exact", head: true })
+          .eq("event_id", nextEvent.id)
+          .eq("user_id", user.id)
+          .then((r) => !!r.count)
+      : Promise.resolve(false),
+  ]);
 
-  const nextEventStarted = nextEvent
-    ? new Date(nextEvent.time ? `${nextEvent.date}T${nextEvent.time}` : `${nextEvent.date}T00:00:00Z`) <= new Date()
-    : false;
+  const now = new Date();
+  const fp1Session = eventSessions?.find((s) => s.session_type === "fp1") ?? null;
+  const nextKeySession =
+    eventSessions?.find((s) => s.session_type !== "fp1" && new Date(`${s.date}T${s.time}`) > now) ?? null;
+
+  const fp1DateTime = fp1Session
+    ? new Date(`${fp1Session.date}T${fp1Session.time}`)
+    : new Date(`${nextEvent?.date ?? "9999-12-31"}T00:00:00Z`);
   const nextEventLocked = nextEvent
-    ? nextEvent.predictions_locked || nextEventStarted
+    ? nextEvent.predictions_locked || fp1DateTime <= now
     : false;
 
   return (
@@ -60,6 +94,9 @@ export default async function DashboardPage() {
             <div className="flex items-center gap-2">
               {nextEvent?.is_sprint && (
                 <Badge label="Sprint Weekend" tone="sprint" />
+              )}
+              {nextEvent && !nextEventLocked && (
+                <Badge label="Predictions Open" tone="open" />
               )}
               {nextEventLocked && nextEvent && (
                 <Badge label="Predictions Locked" tone="locked" />
@@ -82,7 +119,15 @@ export default async function DashboardPage() {
               <p style={{ fontFamily: 'var(--font-titillium)' }} className="text-sm text-[var(--muted)]">
                 {nextEvent.circuit_name} &middot; {nextEvent.country}
               </p>
-              <RaceCountdown targetDate={nextEvent.date} targetTime={nextEvent.time} />
+              <RaceCountdown
+                targetDate={nextKeySession?.date ?? nextEvent.date}
+                targetTime={nextKeySession?.time ?? nextEvent.time ?? null}
+                sessionLabel={nextKeySession ? formatSessionLabel(nextKeySession.session_type) : "Next: Race"}
+              />
+              <LockCountdown
+                lockDate={!nextEventLocked ? (fp1Session?.date ?? null) : null}
+                lockTime={!nextEventLocked ? (fp1Session?.time ?? null) : null}
+              />
               {nextEventLocked ? (
                 <Button href={`/events/${nextEvent.id}/predictions?from=/`} variant="secondary" size="lg">
                   View Predictions

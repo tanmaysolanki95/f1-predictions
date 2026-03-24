@@ -12,6 +12,12 @@ export default function DashboardLoading() {
             <div key={i} className="skeleton h-14 w-16 rounded-[var(--radius-md)]" />
           ))}
         </div>
+        {/* Lock row skeleton */}
+        <div className="flex items-center gap-2 pt-2 mt-1 border-t border-[var(--glass-border)]">
+          <div className="skeleton h-3 w-3 rounded-full" />
+          <div className="skeleton h-3 w-32 rounded-[var(--radius-md)]" />
+          <div className="skeleton h-3 w-20 rounded-[var(--radius-md)]" />
+        </div>
         <div className="skeleton h-10 w-36 rounded-[var(--radius-md)]" />
       </div>
 
