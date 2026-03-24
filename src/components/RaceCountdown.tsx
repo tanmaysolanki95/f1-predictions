@@ -5,9 +5,10 @@ import { useEffect, useState } from "react";
 type RaceCountdownProps = {
   targetDate: string;
   targetTime: string | null;
+  sessionLabel?: string;
 };
 
-export default function RaceCountdown({ targetDate, targetTime }: RaceCountdownProps) {
+export default function RaceCountdown({ targetDate, targetTime, sessionLabel }: RaceCountdownProps) {
   const [timeLeft, setTimeLeft] = useState<number>(0);
 
   useEffect(() => {
@@ -63,14 +64,24 @@ export default function RaceCountdown({ targetDate, targetTime }: RaceCountdownP
   );
 
   return (
-    <div className={`countdown ${days === 0 ? "animate-pulse-glow" : ""}`} aria-label="countdown">
-      <Segment value={days} label="Days" />
-      <span className="countdown-separator">:</span>
-      <Segment value={String(hours).padStart(2, "0")} label="Hours" />
-      <span className="countdown-separator">:</span>
-      <Segment value={String(minutes).padStart(2, "0")} label="Minutes" />
-      <span className="countdown-separator">:</span>
-      <Segment value={String(seconds).padStart(2, "0")} label="Seconds" />
+    <div>
+      {sessionLabel && (
+        <p
+          className="text-xs text-[var(--muted)] uppercase tracking-wider mb-1"
+          style={{ fontFamily: "var(--font-titillium)" }}
+        >
+          {sessionLabel}
+        </p>
+      )}
+      <div className={`countdown ${days === 0 ? "animate-pulse-glow" : ""}`} aria-label="countdown">
+        <Segment value={days} label="Days" />
+        <span className="countdown-separator">:</span>
+        <Segment value={String(hours).padStart(2, "0")} label="Hours" />
+        <span className="countdown-separator">:</span>
+        <Segment value={String(minutes).padStart(2, "0")} label="Minutes" />
+        <span className="countdown-separator">:</span>
+        <Segment value={String(seconds).padStart(2, "0")} label="Seconds" />
+      </div>
     </div>
   );
 }
