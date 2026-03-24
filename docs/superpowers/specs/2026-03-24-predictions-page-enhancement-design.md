@@ -55,6 +55,17 @@ supabase.from("drivers").select("id, code, team_colour, headshot_url")
 
 Both queries remain inside the existing `Promise.all` — no sequential fetching introduced.
 
+### Change: unified `driversMap` type
+
+A single map replaces the current `Map<string, string>` (code only):
+
+```ts
+type DriverInfo = { code: string; teamColour: string | null; headshotUrl: string | null };
+const driversMap = new Map<string, DriverInfo>();
+```
+
+Both the Actual Results card (Section 3) and `resultCell` (Section 4) read from this same map.
+
 ---
 
 ## Section 2 — `SessionSchedule` client component
@@ -92,9 +103,13 @@ interface Props {
 
 Day col shows short weekday + date number on the first session of a day; blank for subsequent sessions on the same day.
 
-Badge uses `var(--f1-red)` with a low-opacity red background for practice/sprint sessions, blue for qualifying, and a stronger red for race.
+Badge styles are locally-scoped Tailwind utility classes inside `SessionSchedule` — the existing `Badge` component is **not** used here (its tones don't map to these session types). Practice/sprint sessions use a low-opacity red pill (`bg-[var(--f1-red)]/15 text-[var(--f1-red)]`), qualifying uses a blue pill, and race uses a stronger red pill.
 
-Time formatted with `Intl.DateTimeFormat` — `hour: "2-digit"`, `minute: "2-digit"`, `hour12: false` in the detected timezone.
+Time formatted with `Intl.DateTimeFormat` — `hour: "2-digit"`, `minute: "2-digit"`, `hour12: false` in the detected timezone. Session date+time must be combined as `new Date(\`${date}T${time}\`)` (proper ISO string) for reliable parsing and sorting.
+
+### Empty sessions guard
+
+If the sessions array is empty (e.g. the season refresh script has not run yet for this event), `SessionSchedule` renders nothing — the component returns `null`. The FP1 lock-time fallback (`new Date(\`${event.date}T00:00:00Z\`)`) remains in place by filtering `sessions` for `session_type === "fp1"` before accessing `.date`/`.time`.
 
 ### Placement in page
 Inserted between the event hero card and the Actual Results card.
@@ -127,6 +142,23 @@ Replace the current flat `grid-cols-5` of code labels with a row of driver cards
 ### Sprint events
 If `event.is_sprint`, two additional cards are appended below in a separate row: Sprint Pole and Sprint P1.
 
+**Pre-existing bug fix:** The current page derives `actualSprintPole` from `qualResults` (main qualifying session), which is incorrect. Sprint pole should come from `sprint_qualifying` session results. As part of this implementation, fix the derivation:
+
+```ts
+// Before (wrong — uses main qualifying)
+const actualSprintPole = qualResults.find((r) => r.position === 1)?.driver_id ?? null;
+
+// After (correct — uses sprint qualifying session)
+const sprintQualResults = allSessionResults.filter((r) => r.session_type === "sprint_qualifying");
+const actualSprintPole = sprintQualResults.find((r) => r.position === 1)?.driver_id ?? null;
+```
+
+### Avatar rendering
+
+For each driver in the results card:
+- If `headshotUrl` is `null`: render a code-initial circle directly (no `FallbackImage`).
+- If `headshotUrl` is non-null: render `<FallbackImage src={headshotUrl} fallback={<CodeCircle />} />` so a load failure falls back to the code circle gracefully.
+
 ---
 
 ## Section 4 — Predictions table: team color dots
@@ -139,14 +171,15 @@ The existing `DataTable` is unchanged. The `resultCell` helper is updated:
 
 <span className={...}>
   <span
-    style={{ background: teamColour ?? "transparent" }}
+    style={{ background: teamColour ? `#${teamColour}` : "transparent" }}
     className="inline-block w-[7px] h-[7px] rounded-full mr-1 align-middle flex-none"
+    aria-hidden="true"
   />
   {code} {correct ? "✓" : ""}
 </span>
 ```
 
-`driversMap` is updated to `Map<string, { code: string; teamColour: string | null }>` so `resultCell` can read the team color alongside the code. The correct/incorrect emerald/dimmed styling is unchanged.
+`team_colour` in the DB is a hex string **without** the `#` prefix (e.g. `"3671C6"`). Always prepend `#` when using it as a CSS color value. The `driversMap` type is the unified `DriverInfo` map defined in Section 1. The correct/incorrect emerald/dimmed styling is unchanged.
 
 ---
 
