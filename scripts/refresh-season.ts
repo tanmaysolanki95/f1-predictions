@@ -6,6 +6,7 @@ import {
   JolpicaApiError,
 } from "../src/lib/jolpica/client";
 import { mapDriver, mapEvent } from "../src/lib/jolpica/mapper";
+import type { JolpicaRaceSchedule } from "../src/lib/jolpica/types";
 import type { Driver } from "../src/types/database";
 
 const supabaseUrl = process.env.SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -34,9 +35,7 @@ async function upsertSeason(year: number) {
   console.log(`Season ${year} upserted`);
 }
 
-async function upsertEvents(seasonYear: number) {
-  const calendar = await getSeasonCalendar(seasonYear);
-
+async function upsertEvents(seasonYear: number, calendar: JolpicaRaceSchedule[]) {
   if (calendar.length === 0) {
     console.log(`No races found for ${seasonYear} — calendar may not be published yet`);
     return 0;
@@ -141,11 +140,75 @@ async function upsertDrivers(seasonYear: number) {
   return rows.length;
 }
 
+async function upsertEventSessions(
+  seasonYear: number,
+  calendar: JolpicaRaceSchedule[],
+) {
+  if (calendar.length === 0) return;
+
+  // Get DB event IDs keyed by round number
+  const { data: events, error: eventsError } = await supabase
+    .from("events")
+    .select("id, round")
+    .eq("season_year", seasonYear);
+  if (eventsError) throw eventsError;
+
+  const eventIdByRound = new Map<number, number>();
+  for (const e of events ?? []) {
+    eventIdByRound.set(e.round, e.id);
+  }
+
+  type SessionRow = { event_id: number; session_type: string; date: string; time: string };
+  const sessions: SessionRow[] = [];
+
+  for (const race of calendar) {
+    const round = parseInt(race.round, 10);
+    const eventId = eventIdByRound.get(round);
+    if (!eventId) continue;
+
+    // Race itself (from base fields)
+    if (race.date && race.time) {
+      sessions.push({ event_id: eventId, session_type: "race", date: race.date, time: race.time });
+    }
+
+    // Map optional session fields — skip if missing
+    const mappings: Array<[{ date: string; time: string } | undefined, string]> = [
+      [race.FirstPractice,                              "fp1"],
+      [race.SecondPractice,                             "fp2"],
+      [race.ThirdPractice,                              "fp3"],
+      [race.Qualifying,                                 "qualifying"],
+      [race.Sprint,                                     "sprint_race"],
+      [race.SprintQualifying ?? race.SprintShootout,    "sprint_qualifying"],
+    ];
+
+    for (const [sessionTime, sessionType] of mappings) {
+      if (sessionTime?.date && sessionTime.time) {
+        sessions.push({ event_id: eventId, session_type: sessionType, date: sessionTime.date, time: sessionTime.time });
+      }
+    }
+  }
+
+  if (sessions.length === 0) {
+    console.log("No session times available in calendar data — skipping session upsert");
+    return;
+  }
+
+  const { error } = await supabase
+    .from("event_sessions")
+    .upsert(sessions, { onConflict: "event_id,session_type" });
+
+  if (error) throw error;
+  console.log(`Upserted ${sessions.length} event sessions`);
+}
+
 async function main() {
   console.log(`\nRefreshing season data for ${seasonYear}\n${"=".repeat(40)}`);
 
   await upsertSeason(seasonYear);
-  const eventCount = await upsertEvents(seasonYear);
+
+  const calendar = await getSeasonCalendar(seasonYear);
+  const eventCount = await upsertEvents(seasonYear, calendar);
+  await upsertEventSessions(seasonYear, calendar);
   const driverCount = await upsertDrivers(seasonYear);
 
   console.log(`\nDone! Season ${seasonYear}: ${eventCount} events, ${driverCount} drivers`);
