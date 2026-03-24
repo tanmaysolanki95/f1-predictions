@@ -19,6 +19,7 @@ ALTER TABLE event_sessions ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Anyone can read event sessions"
   ON event_sessions FOR SELECT USING (true);
 
--- Mirror migration 004: revoke write grants from authenticated
+-- Mirror migration 004: revoke write grants from anon and authenticated
 -- (service role only writes via refresh script)
+REVOKE INSERT, UPDATE, DELETE, TRUNCATE ON event_sessions FROM anon;
 REVOKE INSERT, UPDATE, DELETE, TRUNCATE ON event_sessions FROM authenticated;
