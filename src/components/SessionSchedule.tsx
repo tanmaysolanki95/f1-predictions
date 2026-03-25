@@ -88,7 +88,7 @@ export default function SessionSchedule({ sessions }: Props) {
 
           return (
             <div
-              key={i}
+              key={session.session_type}
               className={`flex items-center gap-3 px-1 py-3 ${
                 i > 0 ? "border-t border-[var(--glass-border)]" : ""
               } ${rowBg}`}
