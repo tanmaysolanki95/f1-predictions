@@ -61,7 +61,7 @@ export default async function EventsPage() {
               <Badge label="Open" tone="open" />
             );
 
-            const predictionsHref = `/events/${ev.id}/predictions?from=/events`;
+            const predictionsHref = `/events/${ev.id}?from=/events`;
             const predictHref = `/events/${ev.id}/predict`;
             const canPredict = user && !isPast && !isLocked;
             const cardHref = canPredict ? predictHref : predictionsHref;

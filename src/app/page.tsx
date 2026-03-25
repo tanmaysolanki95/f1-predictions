@@ -105,7 +105,7 @@ export default async function DashboardPage() {
           {nextEvent ? (
             <div className="space-y-3">
               <Link
-                href={nextEventLocked ? `/events/${nextEvent.id}/predictions?from=/` : `/events/${nextEvent.id}/predict`}
+                href={nextEventLocked ? `/events/${nextEvent.id}?from=/` : `/events/${nextEvent.id}/predict`}
                 className="group inline-flex items-center gap-2 active:opacity-70 transition-opacity"
               >
                 <span style={{ fontFamily: 'var(--font-titillium)' }} className="text-4xl font-extrabold group-hover:text-[var(--f1-red)] transition-colors underline underline-offset-4 decoration-[var(--border-light)] group-hover:decoration-[var(--f1-red)]">
@@ -128,12 +128,12 @@ export default async function DashboardPage() {
                 lockTime={!nextEventLocked ? (fp1Session?.time ?? null) : null}
               />
               {nextEventLocked ? (
-                <Button href={`/events/${nextEvent.id}/predictions?from=/`} variant="secondary" size="lg">
+                <Button href={`/events/${nextEvent.id}?from=/`} variant="secondary" size="lg">
                   View Predictions
                 </Button>
               ) : !user ? (
                 <div className="flex items-center gap-3 flex-wrap">
-                  <Button href={`/events/${nextEvent.id}/predictions?from=/`} variant="secondary" size="lg">
+                  <Button href={`/events/${nextEvent.id}?from=/`} variant="secondary" size="lg">
                     View Predictions
                   </Button>
                   <Button href={`/auth/login?redirect=${encodeURIComponent(`/events/${nextEvent.id}/predict`)}&back=/`} variant="primary" size="lg">
@@ -142,7 +142,7 @@ export default async function DashboardPage() {
                 </div>
               ) : hasPrediction ? (
                 <div className="flex items-center gap-3 flex-wrap">
-                  <Button href={`/events/${nextEvent.id}/predictions?from=/`} variant="secondary" size="lg">
+                  <Button href={`/events/${nextEvent.id}?from=/`} variant="secondary" size="lg">
                     View Predictions
                   </Button>
                   <Button href={`/events/${nextEvent.id}/predict?edit`} variant="ghost" size="lg">

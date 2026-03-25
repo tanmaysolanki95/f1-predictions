@@ -44,7 +44,7 @@ export default async function Page({
     .maybeSingle<Prediction>();
 
   if (existingPrediction && edit === undefined) {
-    redirect(`/events/${eventId}/predictions?from=/`);
+    redirect(`/events/${eventId}?from=/`);
   }
 
   if (!event || !drivers) {
