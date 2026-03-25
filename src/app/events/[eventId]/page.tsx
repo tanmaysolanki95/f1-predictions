@@ -164,7 +164,7 @@ export default async function Page({
       .from("events")
       .select("*")
       .eq("id", Number(eventId))
-      .single<Event>(),
+      .maybeSingle<Event>(),
     supabase
       .from("predictions")
       .select("*")
@@ -282,7 +282,7 @@ export default async function Page({
 
     if (event.is_sprint) {
       row.push(
-        resultCell(pred.sprint_pole_driver_id, actualSprintPole, driversMap, hasResults),
+        resultCell(pred.sprint_pole_driver_id, actualSprintPole, driversMap, hasResults && actualSprintPole !== null),
         resultCell(pred.sprint_p1_driver_id, actualSprintP1, driversMap, hasResults),
       );
     }
