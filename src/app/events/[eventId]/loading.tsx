@@ -31,8 +31,7 @@ export default function EventLoading() {
       {/* Predictions table card */}
       <div className="bg-[var(--card)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] shadow-[var(--shadow-sm)]">
         <div className="px-4 py-3 border-b border-[var(--glass-border)]">
-          <div className="skeleton h-2 w-10 rounded-full mb-2" />
-          <div className="skeleton h-4 w-36 rounded-[var(--radius-md)]" />
+          <div className="skeleton h-4 w-28 rounded-[var(--radius-md)]" />
         </div>
         <div className="p-4">
           <div className="grid grid-cols-6 gap-2 mb-3">
