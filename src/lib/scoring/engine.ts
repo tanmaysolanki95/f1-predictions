@@ -4,6 +4,7 @@ interface ResultsByPosition {
   qualifying: Map<number, string>;
   race: Map<number, string>;
   sprint: Map<number, string>;
+  sprint_grid: Map<number, string>; // grid position → driver_id, used for sprint qualifying pole
 }
 
 function buildPositionMaps(results: SessionResult[]): ResultsByPosition {
@@ -11,10 +12,14 @@ function buildPositionMaps(results: SessionResult[]): ResultsByPosition {
     qualifying: new Map(),
     race: new Map(),
     sprint: new Map(),
+    sprint_grid: new Map(),
   };
 
   for (const r of results) {
     maps[r.session_type].set(r.position, r.driver_id);
+    if (r.session_type === "sprint" && r.grid !== null) {
+      maps.sprint_grid.set(r.grid, r.driver_id);
+    }
   }
 
   return maps;
@@ -39,9 +44,9 @@ export function computeScore(
   const race_p1_points = checkPrediction(maps.race, 1, prediction.race_p1_driver_id);
   const race_p2_points = checkPrediction(maps.race, 2, prediction.race_p2_driver_id);
   const race_p3_points = checkPrediction(maps.race, 3, prediction.race_p3_driver_id);
-  const race_p10_points = checkPrediction(maps.race, 10, prediction.race_p10_driver_id);
+  const race_p10_points = checkPrediction(maps.race, 10, prediction.race_p10_driver_id) * 2;
 
-  const sprint_pole_points = checkPrediction(maps.qualifying, 1, prediction.sprint_pole_driver_id);
+  const sprint_pole_points = checkPrediction(maps.sprint_grid, 1, prediction.sprint_pole_driver_id);
   const sprint_p1_points = checkPrediction(maps.sprint, 1, prediction.sprint_p1_driver_id);
   const sprint_p2_points = 0;
   const sprint_p3_points = 0;

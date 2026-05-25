@@ -180,7 +180,7 @@ export default async function Page({
       .returns<Pick<Profile, "id" | "display_name">[]>(),
     supabase
       .from("session_results")
-      .select("driver_id, position, session_type")
+      .select("driver_id, position, session_type, grid")
       .eq("event_id", Number(eventId)),
     supabase
       .from("scores")
@@ -232,6 +232,7 @@ export default async function Page({
   const allSessionResults = (sessionResults ?? []) as Array<{
     driver_id: string;
     position: number;
+    grid: number | null;
     session_type: "qualifying" | "race" | "sprint";
   }>;
   const hasResults = allSessionResults.length > 0;
@@ -248,8 +249,7 @@ export default async function Page({
   const actualP2 = raceResults.find((r) => r.position === 2)?.driver_id ?? null;
   const actualP3 = raceResults.find((r) => r.position === 3)?.driver_id ?? null;
   const actualP10 = raceResults.find((r) => r.position === 10)?.driver_id ?? null;
-  // Sprint qualifying results are not yet stored in session_results — see spec known limitation
-  const actualSprintPole = null;
+  const actualSprintPole = sprintResults.find((r) => r.grid === 1)?.driver_id ?? null;
   const actualSprintP1 = sprintResults.find((r) => r.position === 1)?.driver_id ?? null;
 
   const scoresMap = new Map<string, number>();
