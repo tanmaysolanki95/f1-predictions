@@ -94,13 +94,14 @@ function DriverResultCard({
 }
 
 // Renders a predictions table cell.
-// When results are available: correct picks are emerald + ✓, wrong picks are dimmed.
+// When results are available: correct picks are emerald + ✓ +N, wrong picks are dimmed.
 // team_colour in DB has no '#' prefix — prepend it for CSS.
 function resultCell(
   driverId: string | null,
   actualId: string | null,
   map: Map<string, DriverInfo>,
   show: boolean,
+  pointValue: number = 1,
 ): React.ReactNode {
   const info = driverId ? map.get(driverId) : null;
   const code = info?.code ?? "—";
@@ -119,6 +120,11 @@ function resultCell(
       <span className="inline-flex items-center gap-1">
         {driverId && dot}
         {code}
+        {show && pointValue > 1 && (
+          <span className="text-[0.6rem] text-[var(--muted)] font-semibold leading-none">
+            +{pointValue}
+          </span>
+        )}
       </span>
     );
   }
@@ -131,7 +137,12 @@ function resultCell(
       }`}
     >
       {dot}
-      {code} {correct ? "✓" : ""}
+      {code}
+      {correct ? (
+        <span className="text-[0.65rem] font-extrabold leading-none">✓ +{pointValue}</span>
+      ) : pointValue > 1 ? (
+        <span className="text-[0.6rem] font-semibold leading-none opacity-60">+{pointValue}</span>
+      ) : null}
     </span>
   );
 }
@@ -277,7 +288,7 @@ export default async function Page({
       resultCell(pred.race_p1_driver_id, actualP1, driversMap, hasResults),
       resultCell(pred.race_p2_driver_id, actualP2, driversMap, hasResults),
       resultCell(pred.race_p3_driver_id, actualP3, driversMap, hasResults),
-      resultCell(pred.race_p10_driver_id, actualP10, driversMap, hasResults),
+      resultCell(pred.race_p10_driver_id, actualP10, driversMap, hasResults, 2),
     ];
 
     if (event.is_sprint) {

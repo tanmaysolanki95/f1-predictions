@@ -41,19 +41,20 @@ type CategoryDef = {
   label: string;
   predKey: keyof NonNullable<EventWithPicks["prediction"]>;
   breakdownKey: string;
+  pointValue: number;
 };
 
 const RACE_CATEGORIES: CategoryDef[] = [
-  { label: "Pole", predKey: "pole", breakdownKey: "pole" },
-  { label: "P1", predKey: "p1", breakdownKey: "p1" },
-  { label: "P2", predKey: "p2", breakdownKey: "p2" },
-  { label: "P3", predKey: "p3", breakdownKey: "p3" },
-  { label: "P10", predKey: "p10", breakdownKey: "p10" },
+  { label: "Pole", predKey: "pole", breakdownKey: "pole", pointValue: 1 },
+  { label: "P1", predKey: "p1", breakdownKey: "p1", pointValue: 1 },
+  { label: "P2", predKey: "p2", breakdownKey: "p2", pointValue: 1 },
+  { label: "P3", predKey: "p3", breakdownKey: "p3", pointValue: 1 },
+  { label: "P10 ×2", predKey: "p10", breakdownKey: "p10", pointValue: 2 },
 ];
 
 const SPRINT_CATEGORIES: CategoryDef[] = [
-  { label: "Sprint Pole", predKey: "sprintPole", breakdownKey: "sprintPole" },
-  { label: "Sprint P1", predKey: "sprintP1", breakdownKey: "sprintP1" },
+  { label: "Sprint Pole", predKey: "sprintPole", breakdownKey: "sprintPole", pointValue: 1 },
+  { label: "Sprint P1", predKey: "sprintP1", breakdownKey: "sprintP1", pointValue: 1 },
 ];
 
 export default function ProfileTabs({ seasons, currentSeason, seasonData }: Props) {
@@ -65,7 +66,7 @@ export default function ProfileTabs({ seasons, currentSeason, seasonData }: Prop
     const eventsPredicted = data.filter((e) => e.prediction !== null).length;
     const correct = data.reduce((acc, e) => {
       if (!e.score) return acc;
-      return acc + Object.values(e.score.breakdown).filter((v) => v === 1).length;
+      return acc + Object.values(e.score.breakdown).filter((v) => v > 0).length;
     }, 0);
     return { total, eventsPredicted, correct };
   }, [selectedSeason, seasonData]);
@@ -141,14 +142,21 @@ export default function ProfileTabs({ seasons, currentSeason, seasonData }: Prop
                   </thead>
                   <tbody>
                     {categories.map((cat) => {
-                      const pick = pred[cat.predKey] ?? "\u2014";
-                      const scored = sc ? sc.breakdown[cat.breakdownKey] === 1 : null;
+                      const pick = pred[cat.predKey] ?? "—";
+                      const pts = sc ? (sc.breakdown[cat.breakdownKey] ?? 0) : null;
+                      const scored = pts !== null ? pts > 0 : null;
                       return (
                         <tr key={cat.breakdownKey} className="border-t border-[var(--glass-border)]">
                           <td className="px-2 py-1 text-sm" style={{ fontFamily: 'var(--font-titillium)' }}>{cat.label}</td>
                           <td className="px-2 py-1 text-sm" style={{ fontFamily: 'var(--font-titillium)' }}>{pick}</td>
                           <td className="px-2 py-1 text-sm">
-                            {scored === null ? "\u2014" : scored ? <span className="text-green-400">✓</span> : <span className="text-red-400">✗</span>}
+                            {scored === null ? "—" : scored ? (
+                              <span className="text-green-400 font-bold">✓ +{pts}</span>
+                            ) : (
+                              <span className="text-white/40">
+                                ✗{cat.pointValue > 1 && <span className="ml-1 text-[0.65rem]">+{cat.pointValue}</span>}
+                              </span>
+                            )}
                           </td>
                         </tr>
                       );
