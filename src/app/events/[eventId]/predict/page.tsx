@@ -15,7 +15,7 @@ export default async function Page({
   const { edit } = await searchParams;
   const supabase = await createClient();
 
-  const [{ data: event }, { data: drivers }, fp1Session, { data: { user } }] = await Promise.all([
+  const [{ data: event }, { data: drivers }, qualiSession, { data: { user } }] = await Promise.all([
     supabase
       .from("events")
       .select("*")
@@ -26,7 +26,7 @@ export default async function Page({
       .from("event_sessions")
       .select("date, time")
       .eq("event_id", Number(eventId))
-      .eq("session_type", "fp1")
+      .eq("session_type", "qualifying")
       .maybeSingle()
       .then((r) => r.data as Pick<EventSession, "date" | "time"> | null),
     supabase.auth.getUser(),
@@ -55,10 +55,10 @@ export default async function Page({
     );
   }
 
-  const fp1DateTime = fp1Session
-    ? new Date(`${fp1Session.date}T${fp1Session.time}`)
+  const lockDateTime = qualiSession
+    ? new Date(`${qualiSession.date}T${qualiSession.time}`)
     : new Date(`${event.date}T00:00:00Z`);
-  const isLocked = event.predictions_locked || fp1DateTime <= new Date();
+  const isLocked = event.predictions_locked || lockDateTime <= new Date();
 
   return (
     <div className="animate-fade-in p-6">
@@ -70,7 +70,7 @@ export default async function Page({
         drivers={drivers}
         existingPrediction={existingPrediction ?? null}
         isLocked={isLocked}
-        fp1DateTime={fp1DateTime.toISOString()}
+        lockDateTime={lockDateTime.toISOString()}
       />
     </div>
   );

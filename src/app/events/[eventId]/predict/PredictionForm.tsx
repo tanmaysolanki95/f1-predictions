@@ -21,7 +21,7 @@ type Props = {
   drivers: Driver[];
   existingPrediction: Prediction | null;
   isLocked: boolean;
-  fp1DateTime: string;
+  lockDateTime: string;
 };
 
 type FormValues = Partial<Record<PredictionCategory, string>>;
@@ -58,7 +58,7 @@ function findDuplicates(
   return dupes;
 }
 
-export default function PredictionForm({ event, drivers, existingPrediction, isLocked, fp1DateTime }: Props) {
+export default function PredictionForm({ event, drivers, existingPrediction, isLocked, lockDateTime }: Props) {
   const router = useRouter();
   const [values, setValues] = useState<FormValues>(() =>
     buildInitialValues(existingPrediction),
@@ -70,13 +70,13 @@ export default function PredictionForm({ event, drivers, existingPrediction, isL
   useEffect(() => {
     if (locked) return;
     const interval = setInterval(() => {
-      if (event.predictions_locked || new Date(fp1DateTime) <= new Date()) {
+      if (event.predictions_locked || new Date(lockDateTime) <= new Date()) {
         setLocked(true);
         clearInterval(interval);
       }
     }, 1000);
     return () => clearInterval(interval);
-  }, [locked, fp1DateTime, event.predictions_locked]);
+  }, [locked, lockDateTime, event.predictions_locked]);
 
   const setField = (cat: PredictionCategory, driverId: string) => {
     setValues((prev) => ({ ...prev, [cat]: driverId }));
