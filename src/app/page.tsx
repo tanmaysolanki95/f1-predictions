@@ -68,15 +68,15 @@ export default async function DashboardPage() {
   ]);
 
   const now = new Date();
-  const fp1Session = eventSessions?.find((s) => s.session_type === "fp1") ?? null;
+  const qualiSession = eventSessions?.find((s) => s.session_type === "qualifying") ?? null;
   const nextKeySession =
-    eventSessions?.find((s) => s.session_type !== "fp1" && new Date(`${s.date}T${s.time}`) > now) ?? null;
+    eventSessions?.find((s) => new Date(`${s.date}T${s.time}`) > now) ?? null;
 
-  const fp1DateTime = fp1Session
-    ? new Date(`${fp1Session.date}T${fp1Session.time}`)
+  const lockDateTime = qualiSession
+    ? new Date(`${qualiSession.date}T${qualiSession.time}`)
     : new Date(`${nextEvent?.date ?? "9999-12-31"}T00:00:00Z`);
   const nextEventLocked = nextEvent
-    ? nextEvent.predictions_locked || fp1DateTime <= now
+    ? nextEvent.predictions_locked || lockDateTime <= now
     : false;
 
   return (
@@ -124,8 +124,8 @@ export default async function DashboardPage() {
                 sessionLabel={nextKeySession ? formatSessionLabel(nextKeySession.session_type) : "Next: Race"}
               />
               <LockCountdown
-                lockDate={!nextEventLocked ? (fp1Session?.date ?? null) : null}
-                lockTime={!nextEventLocked ? (fp1Session?.time ?? null) : null}
+                lockDate={!nextEventLocked ? (qualiSession?.date ?? null) : null}
+                lockTime={!nextEventLocked ? (qualiSession?.time ?? null) : null}
               />
               {nextEventLocked ? (
                 <Button href={`/events/${nextEvent.id}?from=/`} variant="secondary" size="lg">

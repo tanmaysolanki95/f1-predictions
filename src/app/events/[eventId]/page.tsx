@@ -214,12 +214,11 @@ export default async function Page({
     );
   }
 
-  // FP1 session drives the lock-time calculation
-  const fp1Session = sessions.find((s) => s.session_type === "fp1") ?? null;
-  const fp1DateTime = fp1Session
-    ? new Date(`${fp1Session.date}T${fp1Session.time}`)
+  const qualiSession = sessions.find((s) => s.session_type === "qualifying") ?? null;
+  const lockDateTime = qualiSession
+    ? new Date(`${qualiSession.date}T${qualiSession.time}`)
     : new Date(`${event.date}T00:00:00Z`);
-  const isLocked = event.predictions_locked || fp1DateTime <= new Date();
+  const isLocked = event.predictions_locked || lockDateTime <= new Date();
 
   const driversMap = new Map<string, DriverInfo>();
   for (const d of drivers ?? []) {
