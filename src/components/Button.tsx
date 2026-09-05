@@ -41,15 +41,15 @@ export default function Button({
   ...rest
 }: ButtonProps) {
   const pathname = usePathname();
-  const [navigating, setNavigating] = useState(false);
-
-  useEffect(() => {
-    setNavigating(false);
-  }, [pathname]);
+  // Pathname the click happened on. Navigation is "in flight" until the
+  // pathname changes (or the timeout below fires), so no effect is needed to
+  // reset it after a route change.
+  const [navFrom, setNavFrom] = useState<string | null>(null);
+  const navigating = navFrom !== null && navFrom === pathname;
 
   useEffect(() => {
     if (!navigating) return;
-    const timer = setTimeout(() => setNavigating(false), NAV_TIMEOUT_MS);
+    const timer = setTimeout(() => setNavFrom(null), NAV_TIMEOUT_MS);
     return () => clearTimeout(timer);
   }, [navigating]);
 
@@ -86,7 +86,7 @@ export default function Button({
             e.preventDefault();
             return;
           }
-          setNavigating(true);
+          setNavFrom(pathname);
         }}
       >
         {content}

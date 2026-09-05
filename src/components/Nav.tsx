@@ -34,6 +34,9 @@ export default function Nav({
   async function handleLogout() {
     const supabase = createClient();
     await supabase.auth.signOut();
+    // Deliberate hard navigation: forces the server layout to re-run getUser()
+    // so Nav re-renders in the signed-out state (see AGENTS.md).
+    // eslint-disable-next-line @next/next/no-location-assign-relative-destination
     window.location.href = "/";
   }
 

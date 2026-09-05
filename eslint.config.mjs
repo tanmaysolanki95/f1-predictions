@@ -13,6 +13,25 @@ const eslintConfig = defineConfig([
     "build/**",
     "next-env.d.ts",
   ]),
+  {
+    rules: {
+      // Plain <img> / <FallbackImage> is deliberate: next/image would burn the
+      // Vercel Hobby image-optimization quota on external CDN images (see AGENTS.md).
+      "@next/next/no-img-element": "off",
+      // Allow `_`-prefixed names for intentionally discarded values
+      // (e.g. `const { id: _id, ...rest } = row`).
+      "@typescript-eslint/no-unused-vars": [
+        "warn",
+        {
+          argsIgnorePattern: "^_",
+          varsIgnorePattern: "^_",
+          caughtErrorsIgnorePattern: "^_",
+          destructuredArrayIgnorePattern: "^_",
+          ignoreRestSiblings: true,
+        },
+      ],
+    },
+  },
 ]);
 
 export default eslintConfig;

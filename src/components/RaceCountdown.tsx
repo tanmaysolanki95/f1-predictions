@@ -8,6 +8,19 @@ type RaceCountdownProps = {
   sessionLabel?: string;
 };
 
+function Segment({ value, label }: { value: string | number; label: string }) {
+  return (
+    <div className="countdown-segment" aria-label={label}>
+      <div className="countdown-value" style={{ fontFamily: 'var(--font-titillium)', fontWeight: 900 }}>
+        {value}
+      </div>
+      <div className="countdown-label" style={{ fontFamily: 'var(--font-titillium)' }}>
+        {label}
+      </div>
+    </div>
+  );
+}
+
 export default function RaceCountdown({ targetDate, targetTime, sessionLabel }: RaceCountdownProps) {
   const [timeLeft, setTimeLeft] = useState<number>(0);
 
@@ -51,17 +64,6 @@ export default function RaceCountdown({ targetDate, targetTime, sessionLabel }: 
       </div>
     );
   }
-
-  const Segment = ({ value, label }: { value: string | number; label: string; }) => (
-    <div className="countdown-segment" aria-label={label}>
-      <div className="countdown-value" style={{ fontFamily: 'var(--font-titillium)', fontWeight: 900 }}>
-        {value}
-      </div>
-      <div className="countdown-label" style={{ fontFamily: 'var(--font-titillium)' }}>
-        {label}
-      </div>
-    </div>
-  );
 
   return (
     <div>

@@ -35,7 +35,7 @@ export default function ForgotPasswordPage() {
         <div className="border-t-2 border-[var(--f1-red)]" />
         <div className="p-6 space-y-4">
           <h2 className="text-2xl font-bold" style={{ fontFamily: 'var(--font-titillium)' }}>Reset password</h2>
-          <p className="text-sm text-white/60">Enter your email and we'll send you a reset link</p>
+          <p className="text-sm text-white/60">Enter your email and we&apos;ll send you a reset link</p>
 
           {success && (
             <div className="mb-4 p-3 rounded-md bg-green-500/10 border border-green-500/20 text-green-300 text-sm">

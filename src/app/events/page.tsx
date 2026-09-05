@@ -29,7 +29,7 @@ export default async function EventsPage() {
 
   const now = new Date();
   const today = now.toISOString().split("T")[0];
-  let nextAssigned = false;
+  const nextEventId = (events ?? []).find((ev) => ev.date >= today)?.id ?? null;
 
   return (
     <main className="p-6 text-[var(--muted)] animate-fade-in">
@@ -41,8 +41,7 @@ export default async function EventsPage() {
           {(events ?? []).map((ev) => {
             const eventDate = new Date(ev.date);
             const isPast = eventDate < now;
-            const isNext = !nextAssigned && ev.date >= today;
-            if (isNext) nextAssigned = true;
+            const isNext = ev.id === nextEventId;
             const hasBegun = ev.date <= today;
             const isLocked = ev.predictions_locked || hasBegun;
             const formattedDate = eventDate.toLocaleDateString("en-US", {
