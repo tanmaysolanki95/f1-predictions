@@ -91,12 +91,20 @@ Each route has a `loading.tsx` that Next.js renders instantly on navigation (via
 
 `scripts/refresh-season.ts` loads pre-season data from the Jolpica F1 API. Requires `SEASON` env var (4-digit year). Upserts the season row, all events from the calendar, and all drivers. Preserves existing `headshot_url` and `team_colour` values. Tries current season's driver standings for team info, falls back to previous season. GitHub Actions workflow runs Feb 1 or on demand.
 
+Jolpica's season roster includes FP1-only / reserve drivers with no 3-letter code or number. `drivers.code` is NOT NULL, so `isRaceEntryDriver()` (in `src/lib/jolpica/mapper.ts`) filters them out before the upsert — one such row would otherwise reject the whole batch.
+
 ### Scoring Script
 
 `scripts/fetch-and-score.ts` supports three modes via `ROUND` env var:
 - `ROUND=last` (default): Scores the most recently completed race (race start + 6h buffer)
 - `ROUND=all`: Backfills all completed races in the season (2s delay between API calls)
 - `ROUND=5`: Scores a specific round number
+
+Before upserting each session's results it calls `ensureDriversExist()`, which inserts any driver from the results that is missing from `drivers` (using the result row's Driver + Constructor). This keeps mid-season line-up changes from failing the `session_results` → `drivers` foreign key.
+
+### Database Migrations
+
+`supabase/migrations/` holds numbered SQL files (`NNN_name.sql`, zero-padded, applied in order). The Supabase GitHub integration deploys them to production on every merge to `main` (CLI `db push` under the hood, tracked in `supabase_migrations.schema_migrations`). Migrations 001–009 were applied by hand and baselined with `supabase migration repair`. To add one, drop a new `NNN_name.sql` in the directory and merge.
 
 ### Free Tier Constraints
 
