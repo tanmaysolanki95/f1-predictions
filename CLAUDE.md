@@ -14,7 +14,7 @@
 - Design tokens: `src/app/globals.css`
 - Supabase clients: `src/lib/supabase/server.ts` (server) and `src/lib/supabase/client.ts` (browser)
 - Auth actions: `src/app/auth/actions.ts`
-- Migrations: `supabase/migrations/` (numbered, run in order)
+- Migrations: `supabase/migrations/` (numbered, run in order) — deployed to production by the Supabase GitHub integration on merge to `main`
 
 ## When Making Changes
 

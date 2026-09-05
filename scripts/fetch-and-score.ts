@@ -6,14 +6,20 @@ import {
   getSeasonCalendar,
   isSprintWeekend,
 } from "../src/lib/jolpica/client";
-import type { JolpicaRaceSchedule } from "../src/lib/jolpica/types";
+import type {
+  JolpicaConstructor,
+  JolpicaDriver,
+  JolpicaRaceSchedule,
+} from "../src/lib/jolpica/types";
 import {
+  isRaceEntryDriver,
+  mapDriver,
   mapQualifyingResults,
   mapRaceResults,
   mapSprintResults,
 } from "../src/lib/jolpica/mapper";
 import { computeScores } from "../src/lib/scoring/engine";
-import type { Prediction, SessionResult } from "../src/types/database";
+import type { Driver, Prediction, SessionResult } from "../src/types/database";
 
 const supabaseUrl = process.env.SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -39,6 +45,47 @@ async function findEventId(seasonYear: number, roundNum: number): Promise<number
     .single();
 
   return data?.id ?? null;
+}
+
+type ResultEntry = { Driver: JolpicaDriver; Constructor?: JolpicaConstructor };
+
+/**
+ * Insert any drivers appearing in session results that are missing from the
+ * `drivers` table. Mid-season line-up changes (e.g. a driver returning after
+ * the pre-season refresh) would otherwise fail the session_results FK.
+ */
+async function ensureDriversExist(entries: ResultEntry[]) {
+  const byId = new Map<string, ResultEntry>();
+  for (const e of entries) byId.set(e.Driver.driverId, e);
+  if (byId.size === 0) return;
+
+  const { data: existing, error: selErr } = await supabase
+    .from("drivers")
+    .select("id")
+    .in("id", [...byId.keys()]);
+  if (selErr) throw selErr;
+
+  const existingIds = new Set((existing ?? []).map((d) => d.id));
+  const missing = [...byId.values()].filter((e) => !existingIds.has(e.Driver.driverId));
+  if (missing.length === 0) return;
+
+  const rows: Driver[] = [];
+  const unmappable: string[] = [];
+  for (const e of missing) {
+    if (isRaceEntryDriver(e.Driver)) rows.push(mapDriver(e.Driver, e.Constructor?.name));
+    else unmappable.push(e.Driver.driverId);
+  }
+  if (unmappable.length > 0) {
+    console.warn(`Cannot add driver(s) without a code: ${unmappable.join(", ")}`);
+  }
+  if (rows.length === 0) return;
+
+  const { error } = await supabase.from("drivers").insert(rows);
+  if (error) {
+    console.error("Failed to insert missing drivers:", error.message);
+    throw error;
+  }
+  console.log(`Added ${rows.length} missing driver(s): ${rows.map((r) => r.id).join(", ")}`);
 }
 
 async function upsertResults(results: SessionResult[]) {
@@ -139,15 +186,18 @@ async function processRace(race: JolpicaRaceSchedule) {
 
   const qualResults = await getQualifyingResults(actualSeason, actualRound);
   console.log(`Fetched ${qualResults.length} qualifying results`);
+  await ensureDriversExist(qualResults);
   await upsertResults(mapQualifyingResults(eventId, qualResults));
 
   const raceResults = await getRaceResults(actualSeason, actualRound);
   console.log(`Fetched ${raceResults.length} race results`);
+  await ensureDriversExist(raceResults);
   await upsertResults(mapRaceResults(eventId, raceResults));
 
   if (isSprintWeekend(race)) {
     const sprintResults = await getSprintResults(actualSeason, actualRound);
     console.log(`Fetched ${sprintResults.length} sprint results`);
+    await ensureDriversExist(sprintResults);
     await upsertResults(mapSprintResults(eventId, sprintResults));
   }
 

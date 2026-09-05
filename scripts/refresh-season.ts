@@ -5,7 +5,7 @@ import {
   getDriverStandings,
   JolpicaApiError,
 } from "../src/lib/jolpica/client";
-import { mapDriver, mapEvent } from "../src/lib/jolpica/mapper";
+import { isRaceEntryDriver, mapDriver, mapEvent } from "../src/lib/jolpica/mapper";
 import type { JolpicaRaceSchedule } from "../src/lib/jolpica/types";
 import type { Driver } from "../src/types/database";
 
@@ -110,6 +110,17 @@ async function upsertDrivers(seasonYear: number) {
     return 0;
   }
 
+  // Jolpica lists FP1-only / reserve drivers on the roster without a code or
+  // number. `drivers.code` is NOT NULL, so one such row would reject the whole
+  // upsert batch — skip them.
+  const raceDrivers = apiDrivers.filter(isRaceEntryDriver);
+  const skipped = apiDrivers.filter((d) => !isRaceEntryDriver(d));
+  if (skipped.length > 0) {
+    console.log(
+      `Skipping ${skipped.length} driver(s) without a code: ${skipped.map((d) => d.driverId).join(", ")}`,
+    );
+  }
+
   const teamMap = await buildTeamMap(seasonYear);
 
   const { data: existingDrivers } = await supabase
@@ -121,7 +132,7 @@ async function upsertDrivers(seasonYear: number) {
     existingMap.set(d.id, { headshot_url: d.headshot_url, team_colour: d.team_colour });
   }
 
-  const rows: Omit<Driver, "">[] = apiDrivers.map((d) => {
+  const rows: Driver[] = raceDrivers.map((d) => {
     const mapped = mapDriver(d, teamMap.get(d.driverId));
     const existing = existingMap.get(d.driverId);
     return {

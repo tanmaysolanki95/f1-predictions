@@ -8,7 +8,18 @@ import type {
 import type { Driver, Event, SessionResult, SessionType } from "@/types/database";
 import { isSprintWeekend } from "./client";
 
-export function mapDriver(d: JolpicaDriver, team?: string): Driver {
+/** A Jolpica driver with the fields required by the `drivers` table (`code` is NOT NULL). */
+export type RaceEntryDriver = JolpicaDriver & { code: string };
+
+/**
+ * Jolpica's season roster includes FP1-only / reserve drivers without a
+ * 3-letter code or permanent number. Only drivers with a code can be stored.
+ */
+export function isRaceEntryDriver(d: JolpicaDriver): d is RaceEntryDriver {
+  return typeof d.code === "string" && d.code.length > 0;
+}
+
+export function mapDriver(d: RaceEntryDriver, team?: string): Driver {
   return {
     id: d.driverId,
     code: d.code,
@@ -16,7 +27,7 @@ export function mapDriver(d: JolpicaDriver, team?: string): Driver {
     last_name: d.familyName,
     team: team ?? null,
     nationality: d.nationality,
-    number: d.permanentNumber,
+    number: d.permanentNumber ?? null,
     headshot_url: null,
     team_colour: null,
   };

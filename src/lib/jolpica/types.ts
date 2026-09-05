@@ -35,8 +35,10 @@ export interface JolpicaCircuit {
 
 export interface JolpicaDriver {
   driverId: string;
-  permanentNumber: string;
-  code: string;
+  /** Missing for FP1-only / reserve drivers that Jolpica lists on the season roster. */
+  permanentNumber?: string;
+  /** Missing for FP1-only / reserve drivers that Jolpica lists on the season roster. */
+  code?: string;
   url: string;
   givenName: string;
   familyName: string;
